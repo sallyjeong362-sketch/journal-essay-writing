@@ -268,6 +268,39 @@ body.mode-teen .mm-node.center { border-color:#5a7691; background:#e3ecf4; color
 body.mode-teen .essay-preview { background:#fff; font-size:15px; line-height:2; }
 .final-actions { display:flex; gap:8px; flex-wrap:wrap; margin:1rem 0; }
 
+/* -------- typing practice -------- */
+.typing-modes { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; }
+.typing-mode-btn { border:2px solid var(--line); background:#fff; border-radius:var(--radius-pill); padding:0.5rem 1rem; font-size:12.5px; font-weight:700; color:#888; cursor:pointer; font-family:inherit; }
+.typing-mode-btn.active { border-color:#3c6e9e; color:#3c6e9e; background:#f3f8fd; }
+.typing-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1rem; }
+.typing-stat { background:#fafaf8; border:1px solid var(--line); border-radius:var(--radius-sm); padding:0.6rem 1rem; text-align:center; min-width:84px; flex:1; }
+.typing-stat .val { font-size:20px; font-weight:800; color:#3c6e9e; }
+.typing-stat .lab { font-size:11px; color:#999; margin-top:2px; }
+.typing-target {
+  font-family:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace;
+  font-size:18px; line-height:1.9; letter-spacing:0.5px; padding:1.1rem 1.25rem;
+  background:#fafaf8; border:2px solid var(--line); border-radius:var(--radius-md); margin-bottom:0.9rem;
+  word-break:break-word;
+}
+.typing-target .tc-correct { color:#4a7c3f; }
+.typing-target .tc-wrong { color:#fff; background:#c94f4f; border-radius:2px; }
+.typing-target .tc-pending { color:#b5b5ac; }
+.typing-target .tc-current { color:#1a1a18; background:#dbe9f7; border-radius:2px; outline:2px solid #3c6e9e; }
+body.mode-teen .typing-target { font-size:15.5px; background:#fff; }
+.typing-input { font-family:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace; font-size:16px; resize:none; }
+.typing-actions { display:flex; gap:8px; flex-wrap:wrap; margin:0.9rem 0; }
+.typing-result { background:var(--green); border:2px solid var(--green-border); border-radius:var(--radius-md); padding:1rem 1.2rem; margin-bottom:1rem; display:none; }
+.typing-result.show { display:block; }
+.typing-result h3 { margin:0 0 0.4rem; color:var(--green-text); font-size:15px; }
+.typing-history-list { font-size:12.5px; color:#666; }
+.typing-history-row { display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f0f0ee; }
+.typing-empty-msg { display:block; text-align:center; padding:1.5rem 1rem; color:#999; font-size:13px; font-family:var(--font-ui); }
+@media (max-width:640px) {
+  .typing-target { font-size:15px; padding:0.9rem 1rem; }
+  .typing-stat { min-width:70px; padding:0.5rem 0.6rem; }
+  .typing-stat .val { font-size:17px; }
+}
+
 /* -------- library -------- */
 .essay-list-item {
   display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0.8rem 0;
@@ -320,6 +353,7 @@ body.mode-teen .essay-preview { background:#fff; font-size:15px; line-height:2; 
     <div class="header-btns">
       <button class="btn" id="newEssayBtn"><span class="deco">➕ </span>새 글 시작하기</button>
       <button class="btn" id="libraryBtn"><span class="deco">📚 </span>내 글 목록</button>
+      <button class="btn" id="typingBtn"><span class="deco">⌨️ </span>타이핑 연습</button>
       <div class="mode-switch" id="modeSwitch">
         <button class="mode-btn" data-mode="kids">🧒 키즈</button>
         <button class="mode-btn" data-mode="teen">🧑‍🎓 청소년</button>
@@ -502,6 +536,39 @@ body.mode-teen .essay-preview { background:#fff; font-size:15px; line-height:2; 
     </div>
   </section>
 
+  <!-- ============ TYPING PRACTICE ============ -->
+  <section class="view" id="view-typing">
+    <div class="card">
+      <h2><span class="deco">⌨️ </span>영어 타이핑 연습</h2>
+      <p class="desc">PC와 모바일 모두에서 연습할 수 있어요. 아래 문장을 보고 똑같이 입력해보세요! (붙여넣기는 연습을 위해 막혀 있어요)</p>
+      <div class="typing-modes" id="typingModes">
+        <button class="typing-mode-btn" data-type="words">단어 Words</button>
+        <button class="typing-mode-btn" data-type="sentences">문장 Sentences</button>
+        <button class="typing-mode-btn" data-type="transitions">전환어 Transitions</button>
+        <button class="typing-mode-btn" data-type="myessay">내가 쓴 글</button>
+      </div>
+      <div class="typing-stats">
+        <div class="typing-stat"><div class="val" id="typingWpm">0</div><div class="lab">WPM</div></div>
+        <div class="typing-stat"><div class="val" id="typingAccuracy">100%</div><div class="lab">정확도</div></div>
+        <div class="typing-stat"><div class="val" id="typingTime">0s</div><div class="lab">시간</div></div>
+        <div class="typing-stat"><div class="val" id="typingMistakes">0</div><div class="lab">실수</div></div>
+      </div>
+      <div class="typing-target" id="typingTarget"></div>
+      <textarea class="typing-input" id="typingInput" rows="3" placeholder="여기에 위 문장을 그대로 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text"></textarea>
+      <div class="typing-actions">
+        <button class="btn primary small" id="typingRestartBtn"><span class="deco">🔁 </span>다시 하기</button>
+        <button class="btn small" id="typingNewBtn"><span class="deco">🔀 </span>새 문장</button>
+        <button class="btn small" id="typingStopBtn"><span class="deco">⏹️ </span>그만하기</button>
+      </div>
+      <div class="typing-result" id="typingResult">
+        <h3><span class="deco">🎉 </span>완료!</h3>
+        <p id="typingResultSummary"></p>
+      </div>
+      <div class="section-label" style="margin-top:1.25rem;">최근 기록</div>
+      <div class="typing-history-list" id="typingHistoryList"></div>
+    </div>
+  </section>
+
 </div>
 
 <script>
@@ -615,8 +682,8 @@ let store = loadStore();
 function loadStore() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : { essays:{}, currentId:null };
-  } catch(e) { return { essays:{}, currentId:null }; }
+    return raw ? JSON.parse(raw) : { essays:{}, currentId:null, typingHistory:[] };
+  } catch(e) { return { essays:{}, currentId:null, typingHistory:[] }; }
 }
 function saveStore() { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
 function genId() { return "e_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -694,7 +761,7 @@ document.addEventListener("focusin", e => {
 /* ============================================================
    NAVIGATION
 ============================================================ */
-const VIEWS = ["topics","mindmap","intro","body","conclusion","final","library"];
+const VIEWS = ["topics","mindmap","intro","body","conclusion","final","library","typing"];
 let currentView = "topics";
 
 function showView(view) {
@@ -710,6 +777,7 @@ function showView(view) {
   if (view === "conclusion") renderConclusion();
   if (view === "final") renderFinal();
   if (view === "library") renderLibrary();
+  if (view === "typing") renderTyping();
   window.scrollTo({ top:0, behavior:"instant" in window ? "instant" : "auto" });
 }
 
@@ -722,6 +790,7 @@ document.getElementById("newEssayBtn").addEventListener("click", () => {
   showView("topics");
 });
 document.getElementById("libraryBtn").addEventListener("click", () => showView("library"));
+document.getElementById("typingBtn").addEventListener("click", () => showView("typing"));
 
 /* ============================================================
    1. TOPICS VIEW
@@ -1104,6 +1173,202 @@ function renderLibrary() {
     renderLibrary();
   }));
 }
+
+/* ============================================================
+   TYPING PRACTICE
+============================================================ */
+const TYPING_CONTENT = {
+  words: {
+    kids: ["cat","dog","sun","run","play","book","happy","jump","school","friend","apple","water","smile","green","house","little","funny","garden","summer","winter","family","animal","yellow","purple","flower","rabbit","turtle","pencil","letter","monkey"],
+    teen: ["adventure","curious","imagine","favorite","although","beautiful","opinion","perspective","achieve","challenge","describe","discover","environment","experience","important","knowledge","memory","paragraph","persuade","reflect","strategy","structure","transition","vocabulary","because","however","therefore","especially","eventually","confidence"]
+  },
+  sentences: {
+    kids: [
+      "I like to play baseball.",
+      "My favorite color is yellow.",
+      "The dog runs in the park.",
+      "We eat pizza on Friday.",
+      "She has a big red bag.",
+      "I love my family very much.",
+      "The sun is hot today.",
+      "He plays with his friends.",
+      "My cat likes to sleep.",
+      "We go to school every day.",
+      "I can read a fun book.",
+      "The flowers are pretty and pink.",
+      "My best memory is my birthday.",
+      "I feel happy when I win.",
+      "We watch a movie at night."
+    ],
+    teen: [
+      "Have you ever thought about which color is the most beautiful?",
+      "I think baseball is the most exciting sport of all.",
+      "Let me tell you all about why I love this so much.",
+      "First, I will explain the most important reason.",
+      "Next, I would like to describe a special memory.",
+      "To sum up, this will always be my favorite because it makes me happy.",
+      "Although it was difficult, I learned an important lesson that day.",
+      "Many students believe that practice is the key to improvement.",
+      "However, not everyone agrees with this opinion.",
+      "In my opinion, reading every day improves your vocabulary.",
+      "Additionally, writing a little bit each day builds confidence.",
+      "Finally, I realized that mistakes can help us grow stronger.",
+      "Therefore, it is important to keep trying even when things are hard.",
+      "For example, my favorite place always reminds me of my family.",
+      "Overall, this experience taught me something I will never forget."
+    ]
+  }
+};
+const TYPING_LABELS = { words:"단어", sentences:"문장", transitions:"전환어", myessay:"내가 쓴 글" };
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function currentUiMode() { return document.body.classList.contains("mode-teen") ? "teen" : "kids"; }
+
+let typingState = { contentType: "sentences", target: "", startTime: null, timerId: null, finished: false };
+
+function generateTypingTarget(contentType) {
+  const uiMode = currentUiMode();
+  if (contentType === "words") return shuffleArray(TYPING_CONTENT.words[uiMode]).slice(0, 12).join(" ");
+  if (contentType === "sentences") return shuffleArray(TYPING_CONTENT.sentences[uiMode]).slice(0, 3).join(" ");
+  if (contentType === "transitions") return shuffleArray(TRANSITION_WORDS).join(", ") + ".";
+  if (contentType === "myessay") {
+    const e = currentEssay();
+    if (e) {
+      const { introText, bodyTexts, conclusionText } = buildParagraphs(e);
+      const full = [introText, ...bodyTexts, conclusionText].filter(Boolean).join(" ");
+      if (full.trim()) return full;
+    }
+    return "";
+  }
+  return "";
+}
+
+function renderTypingTargetHtml(target, typed) {
+  let html = "";
+  for (let i = 0; i < target.length; i++) {
+    const ch = target[i];
+    let cls = "tc-pending";
+    if (i < typed.length) cls = typed[i] === ch ? "tc-correct" : "tc-wrong";
+    else if (i === typed.length) cls = "tc-current";
+    html += `<span class="${cls}">${escapeHtml(ch)}</span>`;
+  }
+  return html;
+}
+
+function resetTyping(newTarget) {
+  if (typingState.timerId) clearInterval(typingState.timerId);
+  typingState.target = newTarget !== undefined ? newTarget : generateTypingTarget(typingState.contentType);
+  typingState.startTime = null;
+  typingState.timerId = null;
+  typingState.finished = false;
+  const input = document.getElementById("typingInput");
+  input.value = "";
+  input.disabled = !typingState.target;
+  document.getElementById("typingResult").classList.remove("show");
+  document.getElementById("typingWpm").textContent = "0";
+  document.getElementById("typingAccuracy").textContent = "100%";
+  document.getElementById("typingTime").textContent = "0s";
+  document.getElementById("typingMistakes").textContent = "0";
+  if (typingState.target) {
+    document.getElementById("typingTarget").innerHTML = renderTypingTargetHtml(typingState.target, "");
+    input.focus();
+  } else {
+    document.getElementById("typingTarget").innerHTML = `<span class="typing-empty-msg">아직 완성된 글이 없어요. "완성된 글" 단계에서 먼저 글을 써보세요!</span>`;
+  }
+}
+
+function computeTypingStats(typed) {
+  const target = typingState.target;
+  let correct = 0;
+  const len = Math.min(typed.length, target.length);
+  for (let i = 0; i < len; i++) if (typed[i] === target[i]) correct++;
+  const mistakes = typed.length - correct;
+  const accuracy = typed.length ? Math.round((correct / typed.length) * 100) : 100;
+  const elapsedMin = typingState.startTime ? (performance.now() - typingState.startTime) / 60000 : 0;
+  const wpm = elapsedMin > 0 ? Math.round((correct / 5) / elapsedMin) : 0;
+  const elapsedSec = typingState.startTime ? Math.round((performance.now() - typingState.startTime) / 1000) : 0;
+  return { correct, mistakes, accuracy, wpm, elapsedSec };
+}
+
+function updateTypingStatsDisplay(typed) {
+  const stats = computeTypingStats(typed);
+  document.getElementById("typingWpm").textContent = stats.wpm;
+  document.getElementById("typingAccuracy").textContent = stats.accuracy + "%";
+  document.getElementById("typingTime").textContent = stats.elapsedSec + "s";
+  document.getElementById("typingMistakes").textContent = stats.mistakes;
+  return stats;
+}
+
+function finishTyping(typed) {
+  if (typingState.finished) return;
+  typingState.finished = true;
+  if (typingState.timerId) clearInterval(typingState.timerId);
+  const stats = updateTypingStatsDisplay(typed);
+  document.getElementById("typingInput").disabled = true;
+  document.getElementById("typingResult").classList.add("show");
+  document.getElementById("typingResultSummary").textContent =
+    `WPM ${stats.wpm} · 정확도 ${stats.accuracy}% · 시간 ${stats.elapsedSec}초 · 실수 ${stats.mistakes}개`;
+  if (!store.typingHistory) store.typingHistory = [];
+  store.typingHistory.unshift({ date: Date.now(), contentType: typingState.contentType, wpm: stats.wpm, accuracy: stats.accuracy, mode: currentUiMode() });
+  store.typingHistory = store.typingHistory.slice(0, 20);
+  saveStore();
+  renderTypingHistory();
+}
+
+function renderTypingHistory() {
+  const wrap = document.getElementById("typingHistoryList");
+  const list = store.typingHistory || [];
+  if (list.length === 0) {
+    wrap.innerHTML = `<p class="empty-note">아직 연습 기록이 없어요. 위에서 첫 연습을 시작해보세요!</p>`;
+    return;
+  }
+  wrap.innerHTML = list.map(r => `
+    <div class="typing-history-row">
+      <span>${new Date(r.date).toLocaleDateString("ko-KR")} · ${escapeHtml(TYPING_LABELS[r.contentType] || r.contentType)}</span>
+      <span><strong>${r.wpm}</strong> WPM · ${r.accuracy}%</span>
+    </div>`).join("");
+}
+
+function renderTyping() {
+  document.querySelectorAll(".typing-mode-btn").forEach(b => b.classList.toggle("active", b.dataset.type === typingState.contentType));
+  resetTyping();
+  renderTypingHistory();
+}
+
+document.querySelectorAll(".typing-mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    typingState.contentType = btn.dataset.type;
+    document.querySelectorAll(".typing-mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    resetTyping();
+  });
+});
+const typingInputEl = document.getElementById("typingInput");
+typingInputEl.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
+typingInputEl.addEventListener("paste", e => e.preventDefault());
+typingInputEl.addEventListener("input", () => {
+  if (typingState.finished || !typingState.target) return;
+  const typed = typingInputEl.value;
+  if (!typingState.startTime && typed.length > 0) {
+    typingState.startTime = performance.now();
+    typingState.timerId = setInterval(() => updateTypingStatsDisplay(typingInputEl.value), 500);
+  }
+  document.getElementById("typingTarget").innerHTML = renderTypingTargetHtml(typingState.target, typed);
+  updateTypingStatsDisplay(typed);
+  if (typed.length >= typingState.target.length) finishTyping(typed);
+});
+document.getElementById("typingRestartBtn").addEventListener("click", () => resetTyping(typingState.target));
+document.getElementById("typingNewBtn").addEventListener("click", () => resetTyping());
+document.getElementById("typingStopBtn").addEventListener("click", () => {
+  if (!typingState.startTime || typingState.finished) return;
+  finishTyping(typingInputEl.value);
+});
 
 /* ============================================================
    MODE (kids / teen)
