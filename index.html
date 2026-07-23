@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✏️ 나의 글쓰기 노트 — Journal &amp; Essay Writer</title>
+<style>
+:root {
+  /* functional colors used to code intro/body/conclusion parts — shared across modes */
+  --pink:#fbe4e4; --pink-text:#a83a3a; --pink-border:#e79a9a;
+  --slate:#e6ecf3; --slate-text:#3c5a76; --slate-border:#b9c8dc;
+  --blue:#d3e6f7; --blue-text:#2c5f8a; --blue-border:#9fc3e6;
+  --green:#dcedd6; --green-text:#4a7c3f; --green-border:#a9cf9c;
+  --orange:#fbe3d0; --orange-text:#b5651d; --orange-border:#f0b47e;
+  --purple:#ece2f7; --purple-text:#6c3fa0; --purple-border:#c7aee8;
+  --teal:#d7efe9; --teal-text:#2b7a68; --teal-border:#9ed6c7;
+  --yellow:#fff6cf; --yellow-text:#8a6a00; --yellow-border:#f0dca0;
+  --ink:#2c2c2a; --paper:#fbfaf7; --card:#ffffff; --line:#e9e5db;
+
+  /* mode-dependent tokens — default (kids) values, overridden by body.mode-teen below */
+  --font-ui: "Baloo 2","Comic Sans MS","Segoe UI","Noto Sans KR",sans-serif;
+  --font-read: var(--font-ui);
+  --font-size-base: 16px;
+  --radius-lg: 22px;
+  --radius-md: 18px;
+  --radius-sm: 14px;
+  --radius-pill: 999px;
+  --content-width: 980px;
+  --shadow-pop: 0 3px 0 rgba(0,0,0,0.08);
+  --hover-lift: translateY(-3px) scale(1.02);
+  --mm-shape: 50%/45%;
+  --topic-emoji-size: 30px;
+  --topic-emoji-opacity: 1;
+}
+body.mode-teen {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-read: Georgia, "Noto Serif KR", "Apple SD Gothic Neo", serif;
+  --font-size-base: 14.5px;
+  --radius-lg: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  --radius-pill: 6px;
+  --content-width: 760px;
+  --shadow-pop: none;
+  --hover-lift: none;
+  --mm-shape: 10px;
+  --topic-emoji-size: 17px;
+  --topic-emoji-opacity: 0.55;
+  --ink:#26282b; --paper:#f6f6f4; --card:#ffffff; --line:#e2e0da;
+  --pink:#f3e6e6; --pink-text:#8a4a4a; --pink-border:#d9bcbc;
+  --slate:#e9edf2; --slate-text:#42586c; --slate-border:#c7d1db;
+  --blue:#e3ecf4; --blue-text:#31597f; --blue-border:#b7cadb;
+  --green:#e6eee2; --green-text:#4c6d43; --green-border:#bcd0b3;
+  --orange:#f3e7dc; --orange-text:#96603a; --orange-border:#dcc0a0;
+  --purple:#e9e3ef; --purple-text:#5f4a79; --purple-border:#c9bcd8;
+  --teal:#e1eeea; --teal-text:#356f61; --teal-border:#b7d6cc;
+  --yellow:#f6f0d8; --yellow-text:#7a6420; --yellow-border:#ddd0a0;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  transition: background .2s, color .2s;
+}
+.wrap { max-width: var(--content-width); margin: 0 auto; padding: 1.5rem 1.25rem 0; transition: max-width .2s; }
+
+/* -------- decorative emoji: shown in kids mode, hidden in teen mode -------- */
+.deco { }
+body.mode-teen .deco { display:none; }
+
+/* -------- mode switch (header) -------- */
+.mode-switch { display:flex; border:1px solid var(--line); border-radius:var(--radius-pill); overflow:hidden; }
+.mode-btn { border:none; background:#fff; color:#999; font-family:inherit; font-size:12.5px; font-weight:700; padding:0.55rem 0.9rem; cursor:pointer; }
+.mode-btn.active { background:#3c6e9e; color:#fff; }
+.mode-btn:hover:not(.active) { background:#f3f1ea; }
+
+/* -------- mode chooser overlay -------- */
+.mode-overlay {
+  display:none; position:fixed; inset:0; background:rgba(20,20,18,0.55); z-index:100;
+  align-items:center; justify-content:center; padding:1.5rem;
+}
+.mode-overlay-card { background:#fff; border-radius:20px; padding:1.75rem; max-width:480px; width:100%; text-align:center; }
+.mode-overlay-card h2 { margin:0 0 0.4rem; font-size:18px; }
+.mode-overlay-card p { margin:0 0 1.25rem; font-size:13px; color:#999; }
+.mode-overlay-options { display:flex; gap:12px; }
+.mode-overlay-option {
+  flex:1; border:2px solid #e9e5db; border-radius:16px; background:#fafaf8; padding:1.25rem 0.75rem;
+  cursor:pointer; font-family:inherit; transition: border-color .15s, transform .15s;
+}
+.mode-overlay-option:hover { border-color:#3c6e9e; transform:translateY(-2px); }
+.mode-overlay-option .oe { font-size:30px; margin-bottom:6px; }
+.mode-overlay-option .ot { font-weight:700; font-size:14px; margin-bottom:2px; }
+.mode-overlay-option .od { font-size:11.5px; color:#999; }
+
+/* -------- header -------- */
+header.app-header {
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  flex-wrap:wrap; margin-bottom: 1.25rem;
+}
+.app-title h1 { font-size: 22px; margin:0 0 2px; }
+.app-title p { margin:0; font-size:13px; color:#999; }
+.header-btns { display:flex; gap:8px; flex-wrap:wrap; }
+
+.btn {
+  background:#fff; border:1px solid #d8d5cb; border-radius:var(--radius-sm); padding:0.55rem 1rem;
+  font-size:13.5px; font-weight:600; color:#4a4a46; cursor:pointer; font-family:inherit;
+  box-shadow: var(--shadow-pop); transition: transform .12s, background .12s;
+}
+.btn:hover { background:#f3f1ea; transform: var(--hover-lift); }
+.btn.primary { background:#3c6e9e; color:#fff; border-color:transparent; }
+.btn.primary:hover { background:#2c557d; }
+.btn.ghost { background:transparent; border-color:transparent; color:#888; box-shadow:none; }
+.btn.small { padding:0.35rem 0.7rem; font-size:12px; border-radius:calc(var(--radius-sm) - 4px); }
+.btn.danger { color:#a83a3a; border-color:#eecccc; }
+.btn.danger:hover { background:#fdf0f0; }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* -------- steps -------- */
+.steps {
+  display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.step-btn {
+  flex:0 0 auto; display:flex; align-items:center; gap:6px; background:transparent; border:none;
+  padding:0.6rem 0.85rem; font-size:13px; font-weight:600; color:#9a9a94; cursor:pointer;
+  border-bottom:3px solid transparent; white-space:nowrap; font-family:inherit;
+}
+.step-btn .num {
+  width:20px; height:20px; border-radius:50%; background:#ece9e0; color:#9a9a94;
+  display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+}
+.step-btn.active { color:#3c6e9e; border-bottom-color:#3c6e9e; }
+.step-btn.active .num { background:#3c6e9e; color:#fff; }
+.step-btn:hover { color:#3c6e9e; }
+body.mode-teen .step-btn { padding:0.55rem 0.6rem; font-size:12px; }
+body.mode-teen .step-btn .num { width:17px; height:17px; font-size:10px; }
+
+.view { display:none; }
+.view.active { display:block; animation: fadein .15s ease; }
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+
+/* -------- cards -------- */
+.card {
+  background: var(--card); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:1.25rem 1.4rem; margin-bottom:1.25rem; transition: border-radius .2s;
+}
+.card h2 { font-size:16px; margin:0 0 0.35rem; }
+.card .desc { font-size:12.5px; color:#999; margin:0 0 1rem; line-height:1.6; }
+.section-label { font-size:12px; color:#a5a5a0; font-weight:700; letter-spacing:.03em; text-transform:uppercase; margin:0 0 0.5rem; }
+
+/* -------- topic cards -------- */
+.topic-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap:12px; }
+.topic-card {
+  border:2px solid var(--line); border-radius:var(--radius-md); padding:1rem; cursor:pointer; background:#fff;
+  transition: border-color .12s, transform .12s, border-radius .2s;
+}
+.topic-card:hover { border-color:#9fc3e6; transform: var(--hover-lift); }
+.topic-card.selected { border-color:#3c6e9e; background:#f3f8fd; }
+.topic-card .emoji { font-size:var(--topic-emoji-size); opacity:var(--topic-emoji-opacity); transition: font-size .2s, opacity .2s; }
+.topic-card h3 { font-size:14.5px; margin:0.4rem 0 0.15rem; }
+.topic-card .ko { font-size:12px; color:#999; margin:0; }
+.custom-topic-box { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:1rem; }
+.custom-topic-box input { flex:1; min-width:200px; }
+
+.sample-accordion { margin-top:1rem; border-top:1px dashed var(--line); padding-top:1rem; }
+.sample-accordion summary { cursor:pointer; font-size:13px; font-weight:600; color:#3c6e9e; }
+.sample-body { margin-top:0.6rem; background:#fafaf7; border-radius:var(--radius-sm); padding:0.9rem 1rem; font-size:13.5px; line-height:1.85; color:#444; font-family:var(--font-read); }
+.sample-note { font-size:11.5px; color:#b5651d; margin-top:0.5rem; }
+
+/* -------- inputs -------- */
+label { display:block; font-size:12.5px; color:#666; margin-bottom:4px; font-weight:600; }
+input[type=text], textarea, select {
+  width:100%; border:1px solid #dcdcd8; border-radius:var(--radius-sm); padding:0.65rem 0.8rem; font-size:14px;
+  font-family:inherit; background:#fdfdfc; color:#1a1a18;
+}
+input:focus, textarea:focus, select:focus { outline:none; border-color:#3c6e9e; background:#fff; }
+textarea { resize:vertical; min-height:70px; line-height:1.6; }
+.field { margin-bottom:0.9rem; }
+.hint-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+.hint-row .count { font-size:11px; color:#bbb; }
+.hint-row .count.ok { color:#4a7c3f; }
+.example-chip-row { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 0.5rem; }
+.chip {
+  background:#f0f0ee; border:1px solid #e2e2dc; border-radius:var(--radius-pill); padding:4px 10px; font-size:11.5px;
+  color:#666; cursor:pointer; font-family:inherit;
+}
+.chip:hover { background:#e4e9f0; border-color:#b9c8dc; color:#2c5f8a; }
+.qbox { background:#fafaf8; border:1px solid var(--line); border-radius:var(--radius-sm); padding:0.7rem 0.9rem; margin-bottom:0.9rem; }
+.qbox ul { margin:0.3rem 0 0; padding-left:1.1rem; font-size:12.5px; color:#666; line-height:1.8; }
+
+/* -------- flow boxes (intro) -------- */
+.flow { display:flex; flex-direction:column; align-items:stretch; gap:0; }
+.flow-box { border-radius:var(--radius-md); padding:0.9rem 1rem 1rem; border:2px solid; }
+.flow-box.topic { background:var(--pink); border-color:var(--pink-border); color:var(--pink-text); text-align:center; font-weight:700; }
+.flow-box.topic input { text-align:center; font-weight:700; background:#fff; }
+.flow-box.slate { background:var(--slate); border-color:var(--slate-border); }
+.flow-box .box-title { font-size:13px; font-weight:700; color:var(--slate-text); margin-bottom:2px; }
+.flow-box .box-sub { font-size:11.5px; color:#7a8a9a; margin-bottom:0.6rem; }
+.flow-arrow { text-align:center; font-size:20px; color:#c3c3ba; line-height:1; margin:2px 0; }
+
+/* -------- body columns -------- */
+.body-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:1rem; }
+.transition-bank { display:flex; flex-wrap:wrap; gap:6px; }
+.body-columns { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:14px; align-items:start; }
+.body-col { border-radius:var(--radius-md); padding:0; overflow:hidden; border:2px solid; }
+.body-col .col-head { padding:0.65rem 0.9rem; font-size:13px; font-weight:700; display:flex; justify-content:space-between; align-items:center; }
+.body-col .col-body { padding:0.9rem; background:#fff; }
+.body-col .detail-label { font-size:11.5px; font-weight:700; margin-bottom:3px; opacity:0.85; }
+.body-col textarea { min-height:56px; font-size:13.5px; }
+.body-col .mini-arrow { text-align:center; color:#ccc; font-size:16px; margin:4px 0; }
+.remove-col-btn { background:none; border:none; cursor:pointer; font-size:15px; color:inherit; opacity:0.6; }
+.remove-col-btn:hover { opacity:1; }
+.add-detail-btn { font-size:11.5px; padding:3px 9px; }
+.add-col-card {
+  border:2px dashed #ccc; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;
+  min-height:160px; cursor:pointer; color:#aaa; font-size:13px; font-weight:600; background:#fafaf9;
+}
+.add-col-card:hover { border-color:#3c6e9e; color:#3c6e9e; background:#f3f8fd; }
+
+/* -------- conclusion -------- */
+.closing-bar { background:var(--purple); border:2px solid var(--purple-border); color:var(--purple-text); border-radius:var(--radius-md); padding:0.9rem 1rem; margin-bottom:1rem; }
+.closing-bar .box-title { font-weight:700; font-size:13px; margin-bottom:0.5rem; }
+
+/* -------- reminders -------- */
+.reminder-card { background:var(--yellow); border:2px solid var(--yellow-border); border-radius:var(--radius-lg); padding:1rem 1.2rem; margin-bottom:1.25rem; }
+.reminder-card h2 { color:var(--yellow-text); }
+.reminder-card ul { margin:0.4rem 0 0; padding-left:1.2rem; font-size:13px; color:#6b5200; line-height:1.9; }
+.progress-row { display:flex; gap:14px; flex-wrap:wrap; margin-top:0.8rem; }
+.progress-pill { background:#fff; border:1px solid var(--yellow-border); border-radius:var(--radius-pill); padding:5px 12px; font-size:12px; color:#7a5c00; font-weight:600; }
+.progress-pill.ok { background:#e9f5e2; border-color:#a9cf9c; color:#4a7c3f; }
+
+/* -------- mind map -------- */
+.mindmap-wrap { position:relative; width:100%; height:520px; background:#fafaf8; border:1px dashed #ddd; border-radius:var(--radius-lg); overflow:hidden; }
+.mm-connector { position:absolute; height:2px; background:#e0a3a3; transform-origin:0 50%; z-index:1; }
+body.mode-teen .mm-connector { background:#c7cdd6; }
+.mm-node {
+  position:absolute; z-index:2; min-width:120px; max-width:150px; min-height:64px;
+  border-radius:var(--mm-shape); border:2px solid #d97a7a; background:#fbe4e4; color:#7a2f2f;
+  display:flex; align-items:center; justify-content:center; text-align:center; padding:10px 14px;
+  font-size:12.5px; line-height:1.35; cursor:text; transform:translate(-50%,-50%);
+  transition: border-radius .2s;
+}
+.mm-node.center {
+  min-width:180px; max-width:210px; min-height:110px; background:#fbe4e4; border:3px solid #c94f4f;
+  font-weight:700; font-size:14px; color:#8a2c2c;
+}
+.mm-node:not(.center) { background:#fdf1f1; }
+body.mode-teen .mm-node { border-color:#aeb9c4; background:#eef1f4; color:#3c4854; box-shadow:none; }
+body.mode-teen .mm-node.center { border-color:#5a7691; background:#e3ecf4; color:#2c4a66; }
+.mm-node[contenteditable]:focus { outline:2px solid #3c6e9e; background:#fff; }
+.mm-node .mm-del {
+  position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#c94f4f;
+  color:#fff; font-size:12px; line-height:20px; text-align:center; cursor:pointer; display:none;
+}
+.mm-node:hover .mm-del { display:block; }
+.mm-controls { display:flex; gap:8px; margin-bottom:0.9rem; flex-wrap:wrap; align-items:center; }
+.mm-hint-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:0.6rem; }
+
+/* -------- final essay -------- */
+.essay-preview { background:#fffefb; border:1px solid var(--line); border-radius:var(--radius-lg); padding:1.5rem 1.75rem; font-size:14.5px; line-height:1.9; white-space:pre-wrap; font-family:var(--font-read); }
+.essay-preview p { margin:0 0 1.1rem; text-indent:1.3em; }
+.essay-title { text-align:center; font-weight:700; font-size:16px; margin-bottom:1rem; }
+body.mode-teen .essay-preview { background:#fff; font-size:15px; line-height:2; }
+.final-actions { display:flex; gap:8px; flex-wrap:wrap; margin:1rem 0; }
+
+/* -------- typing practice -------- */
+.typing-modes { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; }
+.typing-mode-btn { border:2px solid var(--line); background:#fff; border-radius:var(--radius-pill); padding:0.5rem 1rem; font-size:12.5px; font-weight:700; color:#888; cursor:pointer; font-family:inherit; }
+.typing-mode-btn.active { border-color:#3c6e9e; color:#3c6e9e; background:#f3f8fd; }
+.typing-stats { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1rem; }
+.typing-stat { background:#fafaf8; border:1px solid var(--line); border-radius:var(--radius-sm); padding:0.6rem 1rem; text-align:center; min-width:84px; flex:1; }
+.typing-stat .val { font-size:20px; font-weight:800; color:#3c6e9e; }
+.typing-stat .lab { font-size:11px; color:#999; margin-top:2px; }
+.typing-target {
+  font-family:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace;
+  font-size:18px; line-height:1.9; letter-spacing:0.5px; padding:1.1rem 1.25rem;
+  background:#fafaf8; border:2px solid var(--line); border-radius:var(--radius-md); margin-bottom:0.9rem;
+  word-break:break-word;
+}
+.typing-target .tc-correct { color:#4a7c3f; }
+.typing-target .tc-wrong { color:#fff; background:#c94f4f; border-radius:2px; }
+.typing-target .tc-pending { color:#b5b5ac; }
+.typing-target .tc-current { color:#1a1a18; background:#dbe9f7; border-radius:2px; outline:2px solid #3c6e9e; }
+body.mode-teen .typing-target { font-size:15.5px; background:#fff; }
+.typing-input { font-family:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace; font-size:16px; resize:none; }
+.typing-actions { display:flex; gap:8px; flex-wrap:wrap; margin:0.9rem 0; }
+.typing-result { background:var(--green); border:2px solid var(--green-border); border-radius:var(--radius-md); padding:1rem 1.2rem; margin-bottom:1rem; display:none; }
+.typing-result.show { display:block; }
+.typing-result h3 { margin:0 0 0.4rem; color:var(--green-text); font-size:15px; }
+.typing-history-list { font-size:12.5px; color:#666; }
+.typing-history-row { display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid #f0f0ee; }
+.typing-empty-msg { display:block; text-align:center; padding:1.5rem 1rem; color:#999; font-size:13px; font-family:var(--font-ui); }
+@media (max-width:640px) {
+  .typing-target { font-size:15px; padding:0.9rem 1rem; }
+  .typing-stat { min-width:70px; padding:0.5rem 0.6rem; }
+  .typing-stat .val { font-size:17px; }
+}
+
+/* -------- library -------- */
+.essay-list-item {
+  display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0.8rem 0;
+  border-bottom:1px solid #f0f0ee; flex-wrap:wrap;
+}
+.essay-list-item .meta { font-size:12px; color:#999; }
+.essay-list-item .title { font-weight:600; font-size:14px; }
+.empty-note { color:#bbb; font-size:13px; padding:1rem 0; }
+
+@media (max-width:640px) {
+  .mindmap-wrap { height:440px; }
+  .mm-node { min-width:96px; max-width:120px; font-size:11px; padding:8px 10px; }
+  .mm-node.center { min-width:140px; max-width:160px; font-size:12.5px; }
+}
+@media print {
+  body * { visibility:hidden; }
+  #printArea, #printArea * { visibility:visible; }
+  #printArea { position:absolute; top:0; left:0; width:100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="mode-overlay" id="modeOverlay">
+  <div class="mode-overlay-card">
+    <h2>누구를 위한 글쓰기 노트인가요?</h2>
+    <p>선택에 따라 화면 디자인이 달라져요. 나중에 언제든 오른쪽 위 버튼으로 바꿀 수 있어요.</p>
+    <div class="mode-overlay-options">
+      <button class="mode-overlay-option" data-mode="kids">
+        <div class="oe">🧒🎨</div>
+        <div class="ot">키즈 (초등)</div>
+        <div class="od">알록달록 재미있는 화면</div>
+      </button>
+      <button class="mode-overlay-option" data-mode="teen">
+        <div class="oe">🧑‍🎓</div>
+        <div class="ot">청소년</div>
+        <div class="od">깔끔하고 읽기 편한 화면</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="app-header">
+    <div class="app-title">
+      <h1><span class="deco">✏️ </span>나의 글쓰기 노트</h1>
+      <p>Journal &amp; Essay Writer — 주제부터 마인드맵, 서론·본론·결론까지 차근차근!</p>
+    </div>
+    <div class="header-btns">
+      <button class="btn" id="newEssayBtn"><span class="deco">➕ </span>새 글 시작하기</button>
+      <button class="btn" id="libraryBtn"><span class="deco">📚 </span>내 글 목록</button>
+      <button class="btn" id="typingBtn"><span class="deco">⌨️ </span>타이핑 연습</button>
+      <div class="mode-switch" id="modeSwitch">
+        <button class="mode-btn" data-mode="kids">🧒 키즈</button>
+        <button class="mode-btn" data-mode="teen">🧑‍🎓 청소년</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="steps" id="stepsNav">
+    <button class="step-btn" data-view="topics"><span class="num">1</span> 주제 &amp; 예시글</button>
+    <button class="step-btn" data-view="mindmap"><span class="num">2</span> 마인드맵</button>
+    <button class="step-btn" data-view="intro"><span class="num">3</span> 서론 Introduction</button>
+    <button class="step-btn" data-view="body"><span class="num">4</span> 본론 Body</button>
+    <button class="step-btn" data-view="conclusion"><span class="num">5</span> 결론 Conclusion</button>
+    <button class="step-btn" data-view="final"><span class="num">6</span> 완성된 글</button>
+  </nav>
+
+  <!-- ============ 1. TOPICS ============ -->
+  <section class="view" id="view-topics">
+    <div class="card">
+      <h2>어떤 주제로 써볼까요?</h2>
+      <p class="desc">주제를 클릭하면 그 주제에 맞는 질문과 예시 문장이 자동으로 준비돼요. 마음에 드는 주제가 없다면 아래에 직접 입력해도 좋아요.</p>
+      <div class="topic-grid" id="topicGrid"></div>
+      <div class="custom-topic-box">
+        <input type="text" id="customTopicInput" placeholder="예: My Favorite Game (직접 주제를 입력해보세요)">
+        <button class="btn primary" id="customTopicBtn">이 주제로 시작하기</button>
+      </div>
+    </div>
+    <div class="card" id="topicDetailCard" style="display:none;">
+      <h2 id="topicDetailTitle"></h2>
+      <p class="desc" id="topicDetailKo"></p>
+      <details class="sample-accordion" open>
+        <summary><span class="deco">📖 </span>예시글 보기 (Sample Essay)</summary>
+        <div class="sample-body" id="topicSampleBody"></div>
+        <p class="sample-note"><span class="deco">⚠️ </span>이 예시글은 참고용이에요. 그대로 베끼지 말고 나만의 이야기와 아이디어로 써보세요!</p>
+      </details>
+      <div class="final-actions">
+        <button class="btn primary" id="startWithTopicBtn"><span class="deco">👉 </span>이 주제로 마인드맵 시작하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. MIND MAP ============ -->
+  <section class="view" id="view-mindmap">
+    <div class="card">
+      <h2><span class="deco">🧠 </span>마인드맵으로 아이디어 넓히기</h2>
+      <p class="desc">가운데 동그라미에 주제를 적고, 생각나는 아이디어를 동그라미로 하나씩 추가해보세요. (최대 8개)</p>
+      <div class="mm-controls">
+        <button class="btn primary small" id="mmAddNodeBtn"><span class="deco">🟠 </span>아이디어 추가</button>
+        <button class="btn small" id="mmSendToBodyBtn"><span class="deco">➡️ </span>본론으로 보내기</button>
+        <span class="count" id="mmCount" style="font-size:12px;color:#999;"></span>
+      </div>
+      <div class="mindmap-wrap" id="mindmapWrap"></div>
+      <div class="mm-hint-chips" id="mmHintChips"></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. INTRO ============ -->
+  <section class="view" id="view-intro">
+    <div class="card">
+      <h2><span class="deco">📝 </span>서론 만들기 (Introduction)</h2>
+      <p class="desc" id="introTarget">목표: 3~5문장 — Topic → Hook/Question → Transition → Topic Sentence 순서로 채워보세요.</p>
+      <div class="flow">
+        <div class="flow-box topic">
+          <div class="box-title">Topic 주제</div>
+          <input type="text" id="introTopicInput" placeholder="주제를 적어보세요">
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box slate">
+          <div class="box-title">1. Hook / Question</div>
+          <div class="box-sub">독자의 흥미를 끄는 질문이나 문장으로 시작해요</div>
+          <div class="example-chip-row" id="hookChips"></div>
+          <textarea id="hookInput" placeholder="예: What is your favorite ...?"></textarea>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box slate">
+          <div class="box-title">2. Transition (Answer the question)</div>
+          <div class="box-sub">Hook에서 던진 질문에 스스로 답해요</div>
+          <div class="example-chip-row" id="transitionChips"></div>
+          <textarea id="transitionInput" placeholder="예: My favorite ... is ...!"></textarea>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-box slate">
+          <div class="box-title">3. Introduce Topic</div>
+          <div class="box-sub">Let me tell you... / I will explain...</div>
+          <div class="example-chip-row" id="topicSentenceChips"></div>
+          <textarea id="topicSentenceInput" placeholder="예: Let me tell you all about it."></textarea>
+        </div>
+      </div>
+      <div class="hint-row" style="margin-top:0.8rem;">
+        <span class="section-label" style="margin:0;">서론 미리보기</span>
+        <span class="count" id="introCount">0문장</span>
+      </div>
+      <div class="qbox" id="introPreview" style="font-size:13.5px; color:#555; line-height:1.8;"></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. BODY ============ -->
+  <section class="view" id="view-body">
+    <div class="card">
+      <h2><span class="deco">📚 </span>본론 만들기 (Body)</h2>
+      <p class="desc" id="bodyTarget">목표: 문단마다 3~5문장 — 각 문단마다 Main Point(핵심 문장) → Detail 1 → Detail 2 순서로 써보세요.</p>
+      <div class="body-toolbar">
+        <div>
+          <div class="section-label">전환어 도우미 (Transition Words) — 클릭하면 커서 위치에 넣어줘요</div>
+          <div class="transition-bank" id="transitionBank"></div>
+        </div>
+      </div>
+      <div class="body-columns" id="bodyColumns"></div>
+      <div class="hint-row" style="margin-top:1rem;">
+        <span class="section-label" style="margin:0;">본론 문장 수</span>
+        <span class="count" id="bodyCount">0문장</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. CONCLUSION ============ -->
+  <section class="view" id="view-conclusion">
+    <div class="card">
+      <h2><span class="deco">🎀 </span>결론 만들기 (Conclusion)</h2>
+      <p class="desc" id="conclusionTarget">목표: 3~5문장 — 서론의 핵심 생각을 다른 말로 다시 쓰고(Retell), 전환어로 마무리해요.</p>
+      <div class="closing-bar">
+        <div class="box-title">Closing — Retell your main idea</div>
+        <div class="example-chip-row" id="conclusionChips"></div>
+        <textarea id="conclusionRetellInput" placeholder="예: To sum up, ... will always be my favorite ... because ..."></textarea>
+      </div>
+      <div class="qbox" id="conclusionQuestionsBox"></div>
+      <div class="field">
+        <label>더 하고 싶은 말이 있나요? (선택)</label>
+        <textarea id="conclusionExtraInput" placeholder="마지막으로 남기고 싶은 생각을 자유롭게 적어보세요."></textarea>
+      </div>
+      <div class="hint-row">
+        <span class="section-label" style="margin:0;">결론 문장 수</span>
+        <span class="count" id="conclusionCount">0문장</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. FINAL ============ -->
+  <section class="view" id="view-final">
+    <div class="reminder-card">
+      <h2><span class="deco">✅ </span>글쓰기 체크리스트</h2>
+      <ul>
+        <li>문단이 시작할 때 두 칸(손가락 두 개만큼) 들여쓰기 하기 (Indent)</li>
+        <li>문단과 문단 사이는 한 줄 띄어쓰기 (Skip a line between paragraphs)</li>
+        <li>새로운 이야기를 시작할 때는 전환어(First, Next, Also, Finally...)를 사용하기</li>
+        <li>예시글은 참고만 하고 그대로 베끼지 않기</li>
+      </ul>
+      <div class="progress-row" id="progressRow"></div>
+    </div>
+    <div class="card">
+      <div class="hint-row">
+        <h2 style="margin:0;"><span class="deco">📄 </span>완성된 글</h2>
+      </div>
+      <p class="desc">제목을 정하고, 전체 글을 확인한 뒤 저장하거나 내보내보세요.</p>
+      <div class="field">
+        <label>글 제목</label>
+        <input type="text" id="essayTitleInput" placeholder="글 제목을 입력하세요">
+      </div>
+      <div id="printArea">
+        <div class="essay-preview">
+          <div class="essay-title" id="finalTitleDisplay"></div>
+          <div id="finalEssayBody"></div>
+        </div>
+      </div>
+      <div class="final-actions">
+        <button class="btn primary" id="saveEssayBtn"><span class="deco">💾 </span>저장하기</button>
+        <button class="btn" id="copyEssayBtn"><span class="deco">📋 </span>복사하기</button>
+        <button class="btn" id="exportEssayBtn"><span class="deco">⬇️ </span>텍스트로 내보내기</button>
+        <button class="btn" id="printEssayBtn"><span class="deco">🖨️ </span>인쇄하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIBRARY ============ -->
+  <section class="view" id="view-library">
+    <div class="card">
+      <h2><span class="deco">📚 </span>내 글 목록</h2>
+      <p class="desc">저장한 저널과 에세이를 다시 열어보거나 삭제할 수 있어요.</p>
+      <div id="essayListWrap"></div>
+    </div>
+  </section>
+
+  <!-- ============ TYPING PRACTICE ============ -->
+  <section class="view" id="view-typing">
+    <div class="card">
+      <h2><span class="deco">⌨️ </span>영어 타이핑 연습</h2>
+      <p class="desc">PC와 모바일 모두에서 연습할 수 있어요. 아래 문장을 보고 똑같이 입력해보세요! (붙여넣기는 연습을 위해 막혀 있어요)</p>
+      <div class="typing-modes" id="typingModes">
+        <button class="typing-mode-btn" data-type="words">단어 Words</button>
+        <button class="typing-mode-btn" data-type="sentences">문장 Sentences</button>
+        <button class="typing-mode-btn" data-type="transitions">전환어 Transitions</button>
+        <button class="typing-mode-btn" data-type="myessay">내가 쓴 글</button>
+      </div>
+      <div class="typing-stats">
+        <div class="typing-stat"><div class="val" id="typingWpm">0</div><div class="lab">WPM</div></div>
+        <div class="typing-stat"><div class="val" id="typingAccuracy">100%</div><div class="lab">정확도</div></div>
+        <div class="typing-stat"><div class="val" id="typingTime">0s</div><div class="lab">시간</div></div>
+        <div class="typing-stat"><div class="val" id="typingMistakes">0</div><div class="lab">실수</div></div>
+      </div>
+      <div class="typing-target" id="typingTarget"></div>
+      <textarea class="typing-input" id="typingInput" rows="3" placeholder="여기에 위 문장을 그대로 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text"></textarea>
+      <div class="typing-actions">
+        <button class="btn primary small" id="typingRestartBtn"><span class="deco">🔁 </span>다시 하기</button>
+        <button class="btn small" id="typingNewBtn"><span class="deco">🔀 </span>새 문장</button>
+        <button class="btn small" id="typingStopBtn"><span class="deco">⏹️ </span>그만하기</button>
+      </div>
+      <div class="typing-result" id="typingResult">
+        <h3><span class="deco">🎉 </span>완료!</h3>
+        <p id="typingResultSummary"></p>
+      </div>
+      <div class="section-label" style="margin-top:1.25rem;">최근 기록</div>
+      <div class="typing-history-list" id="typingHistoryList"></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA
+============================================================ */
+const TRANSITION_WORDS = ["First","First of all","To begin","To start","Next","Also","Plus","One time","One day","However","Then","Last","Finally","To conclude"];
+
+const TOPICS = [
+  {
+    id:"color", emoji:"🎨", title:"My Favorite Color", titleKo:"내가 좋아하는 색깔",
+    hooks:["What is the most beautiful color in the rainbow?","Have you ever thought about which color is the best?","Which color do you think is the most beautiful?"],
+    transitions:["I think yellow is the best color in the world!","My favorite color is blue, and I will tell you why."],
+    topicSentences:["I will explain a lot about my favorite color.","Let me tell you all about why I love this color so much."],
+    bodyHints:["이 색깔의 물건들 (Things that are this color)","이 색깔을 자연에서 볼 수 있는 곳 (Where you see this color in nature)","이 색깔로 된 가장 아끼는 물건 (Your favorite thing that is this color)"],
+    bodyQuestions:["이 색깔인 것에는 무엇이 있나요? 옷, 장난감, 학용품 중에 있나요?","자연에서 이 색깔을 어디에서 볼 수 있나요?","왜 이 색깔이 다른 색깔보다 좋은가요?","이 색깔로 된 것 중 가장 좋아하는 것은 무엇인가요?"],
+    conclusionQuestions:["왜 이 색깔을 앞으로도 계속 좋아할 것 같나요?","왜 이 색깔이 최고라고 생각하나요?","이 색깔로만 된 옷을 입어본 적 있나요, 입어보고 싶나요?"],
+    sample:"There are so many colors in the world, but do you know my favorite? My favorite color is yellow! I like yellow because it reminds me of sunshine and happy days. First, a lot of my clothes are yellow, like my favorite dress and my sneakers. Next, I love yellow things in nature, like sunflowers and lemons — they always make me smile. Last, my favorite yellow thing is a teddy bear my grandmother gave me. It wears a tiny yellow robe, and it reminds me of the fun times we had together. To sum up, yellow will always be my favorite color because it makes me feel warm and happy inside."
+  },
+  {
+    id:"sport", emoji:"⚾", title:"My Favorite Sport", titleKo:"내가 좋아하는 운동",
+    hooks:["What is your favorite sport?","Have you ever thought about which sport is the most fun?","Do you know what sport I love the most?"],
+    transitions:["My favorite sport is baseball.","I think baseball is the most exciting sport of all!"],
+    topicSentences:["I will explain a lot about why I love this sport.","Let me tell you all about my favorite sport."],
+    bodyHints:["이 운동을 할 때 필요한 것 (What you use to play)","이 운동을 할 때 입는 옷 (The clothes or uniform you wear)","좋아하는 팀이나 함께하는 친구 (Your favorite team or people you play with)"],
+    bodyQuestions:["이 운동을 하려면 무엇이 필요한가요?","이 운동을 할 때 어떤 옷을 입나요?","누구와 함께 이 운동을 하나요?","가장 기억에 남는 순간은 무엇인가요?"],
+    conclusionQuestions:["왜 이 운동을 앞으로도 계속 좋아할 것 같나요?","왜 이 운동이 최고라고 생각하나요?","이 운동을 계속 연습하고 싶나요?"],
+    sample:"Have you ever thought about which sport is the most fun? I think baseball is the most exciting sport of all! Let me tell you all about why I love it so much. First, I use a bat and a ball to play, and I also wear a glove to catch the ball. Next, I love wearing my baseball uniform and cap when I play with my team. Last, my favorite team is with my friends Aiden and Mia, and we always have fun together. To sum up, baseball will always be my favorite sport because it makes me feel happy and excited every time I play."
+  },
+  {
+    id:"animal", emoji:"🐾", title:"My Favorite Animal", titleKo:"내가 좋아하는 동물",
+    hooks:["What is your favorite animal?","Have you ever wondered which animal is the most amazing?"],
+    transitions:["My favorite animal is the dolphin.","I think dogs are the best animals in the world!"],
+    topicSentences:["I will explain a lot about why I love this animal.","Let me tell you all about my favorite animal."],
+    bodyHints:["이 동물의 생김새 (What it looks like)","이 동물이 사는 곳 (Where it lives)","이 동물을 좋아하는 이유나 추억 (Why you like it or a memory with it)"],
+    bodyQuestions:["이 동물은 어떻게 생겼나요?","이 동물은 어디에 사나요, 무엇을 먹나요?","이 동물과 관련된 특별한 추억이 있나요?","이 동물의 어떤 점이 가장 멋진가요?"],
+    conclusionQuestions:["왜 이 동물을 앞으로도 계속 좋아할 것 같나요?","왜 이 동물이 최고라고 생각하나요?","이 동물을 키우거나 만나보고 싶나요?"],
+    sample:"Have you ever wondered which animal is the most amazing? I think dolphins are the best animals in the world! Let me tell you all about why I love them so much. First, dolphins are gray and smooth, and they can jump very high out of the water. Next, dolphins live in the ocean and swim together in groups called pods. Last, I will never forget the time I saw a dolphin jump at the aquarium, and it made me so happy. To sum up, dolphins will always be my favorite animal because they are smart, playful, and amazing to watch."
+  },
+  {
+    id:"food", emoji:"🍕", title:"My Favorite Food", titleKo:"내가 좋아하는 음식",
+    hooks:["What is your favorite food?","Have you ever thought about which food is the most delicious?"],
+    transitions:["My favorite food is pizza.","I think tteokbokki is the most delicious food in the world!"],
+    topicSentences:["I will explain a lot about why I love this food.","Let me tell you all about my favorite food."],
+    bodyHints:["이 음식의 맛과 냄새 (What it tastes and smells like)","언제, 누구와 먹는지 (When and who you eat it with)","이 음식과 관련된 추억 (A special memory with this food)"],
+    bodyQuestions:["이 음식은 어떤 맛이 나나요?","언제, 누구와 함께 먹나요?","이 음식을 만들어 본 적이 있나요?","이 음식과 관련된 특별한 추억이 있나요?"],
+    conclusionQuestions:["왜 이 음식을 앞으로도 계속 좋아할 것 같나요?","왜 이 음식이 최고라고 생각하나요?","이 음식을 다른 사람에게 소개하고 싶나요?"],
+    sample:"Have you ever thought about which food is the most delicious? I think pizza is the best food in the world! Let me tell you all about why I love it so much. First, pizza has cheese, tomato sauce, and my favorite toppings like pepperoni. Next, I usually eat pizza on Fridays with my family after a long week. Last, I will never forget the pizza party we had for my birthday last year. To sum up, pizza will always be my favorite food because it is warm, cheesy, and makes me happy."
+  },
+  {
+    id:"season", emoji:"🍂", title:"My Favorite Season", titleKo:"내가 좋아하는 계절",
+    hooks:["What is your favorite season?","Have you ever thought about which season is the best?"],
+    transitions:["My favorite season is winter.","I think summer is the best season of all!"],
+    topicSentences:["I will explain a lot about why I love this season.","Let me tell you all about my favorite season."],
+    bodyHints:["이 계절의 날씨 (The weather in this season)","이 계절에 하는 활동 (Activities you do in this season)","이 계절의 특별한 날 (Special days or holidays in this season)"],
+    bodyQuestions:["이 계절의 날씨는 어떤가요?","이 계절에 무엇을 하나요?","이 계절에 특별한 날이나 명절이 있나요?","이 계절의 어떤 점이 가장 좋은가요?"],
+    conclusionQuestions:["왜 이 계절을 앞으로도 계속 좋아할 것 같나요?","왜 이 계절이 최고라고 생각하나요?","이 계절이 오면 가장 먼저 무엇을 하고 싶나요?"],
+    sample:"Have you ever thought about which season is the best? I think winter is the best season of all! Let me tell you all about why I love it so much. First, winter is cold and snowy, so I can wear cozy sweaters and warm boots. Next, I love building snowmen and having snowball fights with my friends. Last, winter has my favorite holiday, Christmas, when my family decorates the tree together. To sum up, winter will always be my favorite season because it is cozy, fun, and full of happy memories."
+  },
+  {
+    id:"place", emoji:"🗺️", title:"My Favorite Place", titleKo:"내가 좋아하는 장소",
+    hooks:["What is your favorite place to go?","Have you ever thought about which place makes you the happiest?"],
+    transitions:["My favorite place is the beach.","I think my favorite park is the best place ever!"],
+    topicSentences:["I will explain a lot about why I love this place.","Let me tell you all about my favorite place."],
+    bodyHints:["이 장소의 모습 (What it looks like)","그곳에서 하는 일 (What you do there)","그곳이 특별한 이유나 추억 (Why it is special or a memory)"],
+    bodyQuestions:["이 장소는 어떻게 생겼나요?","그곳에서 무엇을 하나요?","누구와 함께 그곳에 가나요?","그곳에서의 특별한 추억이 있나요?"],
+    conclusionQuestions:["왜 이 장소를 앞으로도 계속 좋아할 것 같나요?","왜 이곳이 최고의 장소라고 생각하나요?","다음에 또 가고 싶나요?"],
+    sample:"Have you ever thought about which place makes you the happiest? I think the beach is the best place in the world! Let me tell you all about why I love it so much. First, the beach has soft sand and warm blue water that sparkles in the sun. Next, I love building sandcastles and looking for seashells with my family. Last, I will never forget the time I saw a real starfish in the water. To sum up, the beach will always be my favorite place because it is fun, relaxing, and full of happy memories."
+  },
+  {
+    id:"memory", emoji:"⭐", title:"My Best Memory", titleKo:"가장 소중한 추억",
+    hooks:["Have you ever had a day you will never forget?","What is the best memory you have ever had?"],
+    transitions:["My best memory is the day I went to the amusement park.","I think my birthday party last year was the best day of my life!"],
+    topicSentences:["I will explain a lot about why this memory is so special.","Let me tell you all about my best memory."],
+    bodyHints:["무슨 일이 있었는지 (What happened)","누구와 함께였는지 (Who was there)","그때 어떤 기분이었는지 (How it made you feel)"],
+    bodyQuestions:["그날 무슨 일이 있었나요?","누구와 함께 있었나요?","그때 기분이 어땠나요?","왜 그 순간이 특별했나요?"],
+    conclusionQuestions:["왜 이 추억을 앞으로도 계속 기억할 것 같나요?","이 추억이 왜 가장 소중하다고 생각하나요?","또 이런 순간이 있었으면 좋겠나요?"],
+    sample:"Have you ever had a day you will never forget? I think my birthday party last year was the best day of my life! Let me tell you all about why this memory is so special. First, all of my best friends came to my house to celebrate with me. Next, we played fun games and ate a big chocolate cake together. Last, my parents gave me a surprise gift that I had wanted for a long time. To sum up, my birthday party will always be my best memory because it made me feel loved and so happy."
+  },
+  {
+    id:"family", emoji:"👨‍👩‍👧‍👦", title:"My Family", titleKo:"우리 가족",
+    hooks:["Have you ever thought about how special your family is?","What makes your family so special?"],
+    transitions:["My family is the best part of my life.","I think my family is the most important thing in the world to me!"],
+    topicSentences:["I will explain a lot about my wonderful family.","Let me tell you all about my family."],
+    bodyHints:["가족 구성원 소개 (Who is in your family)","가족과 함께 하는 일 (What you do together)","가족을 사랑하는 이유 (Why you love them)"],
+    bodyQuestions:["가족은 누구누구인가요?","가족과 함께 무엇을 하나요?","가족과의 특별한 추억이 있나요?","가족의 어떤 점이 가장 좋은가요?"],
+    conclusionQuestions:["왜 가족을 앞으로도 계속 사랑할 것 같나요?","왜 우리 가족이 최고라고 생각하나요?","가족과 함께 하고 싶은 일이 있나요?"],
+    sample:"Have you ever thought about how special your family is? I think my family is the most important thing in the world to me! Let me tell you all about why I love them so much. First, my family has my mom, dad, and my little sister, and we all take care of each other. Next, we love to cook dinner together and watch movies on Friday nights. Last, I will never forget the family trip we took to the mountains last summer. To sum up, my family will always be the most important thing to me because they make me feel safe and loved."
+  }
+];
+
+const CUSTOM_TOPIC_TEMPLATE = {
+  id:"custom", emoji:"💭", title:"Custom Topic", titleKo:"내가 정한 주제",
+  hooks:["Have you ever thought about ...?","What is your favorite ...?"],
+  transitions:["I think ... is the best!","My favorite ... is ..."],
+  topicSentences:["Let me tell you all about it.","I will explain a lot about it."],
+  bodyHints:["첫 번째 중요한 내용 (Your first main point)","두 번째 중요한 내용 (Your second main point)","세 번째 중요한 내용 (Your third main point)"],
+  bodyQuestions:["가장 먼저 하고 싶은 이야기는 무엇인가요?","그 다음으로 하고 싶은 이야기는 무엇인가요?","마지막으로 하고 싶은 이야기는 무엇인가요?","예시나 자세한 설명을 더 추가할 수 있나요?"],
+  conclusionQuestions:["왜 이 주제를 앞으로도 계속 좋아할 것 같나요?","왜 이것이 최고라고 생각하나요?","더 하고 싶은 이야기가 있나요?"],
+  sample:""
+};
+
+const BODY_COLORS = ["blue","green","orange","purple","teal"];
+const TARGETS = { intro:[3,5], bodyPerCol:[3,5], conclusion:[3,5] };
+
+/* ============================================================
+   STORAGE / STATE
+============================================================ */
+const STORAGE_KEY = "jw_app_v2";
+let store = loadStore();
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : { essays:{}, currentId:null, typingHistory:[] };
+  } catch(e) { return { essays:{}, currentId:null, typingHistory:[] }; }
+}
+function saveStore() { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
+function genId() { return "e_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function getTopic(topicId) {
+  if (!topicId) return null;
+  if (topicId === "custom") return CUSTOM_TOPIC_TEMPLATE;
+  return TOPICS.find(t => t.id === topicId) || CUSTOM_TOPIC_TEMPLATE;
+}
+
+function newEssay(topicId, customTitle) {
+  const topic = getTopic(topicId) || CUSTOM_TOPIC_TEMPLATE;
+  const id = genId();
+  const essay = {
+    id,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    topicId: topicId || "custom",
+    customTitle: customTitle || "",
+    title: customTitle || topic.title || "제목 없는 글",
+    mindmap: { center: customTitle || topic.title || "", nodes: [] },
+    intro: { topic: customTitle || topic.title || "", hook:"", transition:"", topicSentence:"" },
+    body: [0,1,2].map(() => ({ mainPoint:"", details:["",""] })),
+    conclusion: { retell:"", extra:"" }
+  };
+  store.essays[id] = essay;
+  store.currentId = id;
+  saveStore();
+  return essay;
+}
+
+function currentEssay() {
+  if (store.currentId && store.essays[store.currentId]) return store.essays[store.currentId];
+  return null;
+}
+function ensureEssay() {
+  let e = currentEssay();
+  if (!e) e = newEssay("custom", "");
+  return e;
+}
+function touch() { const e = currentEssay(); if (e) e.updatedAt = Date.now(); saveStore(); }
+
+/* ============================================================
+   UTIL
+============================================================ */
+function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function countSentences(text) {
+  const t = (text || "").trim();
+  if (!t) return 0;
+  const matches = t.match(/[^.!?]*[.!?]+/g);
+  if (matches) return matches.map(s => s.trim()).filter(Boolean).length;
+  return t ? 1 : 0;
+}
+function insertAtCursor(el, text) {
+  if (!el) return;
+  el.focus();
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  const before = el.value.slice(0, start);
+  const after = el.value.slice(end);
+  const needsSpaceBefore = before && !/\s$/.test(before);
+  const insertion = (needsSpaceBefore ? " " : "") + text + " ";
+  el.value = before + insertion + after;
+  const pos = (before + insertion).length;
+  el.setSelectionRange(pos, pos);
+  el.dispatchEvent(new Event("input"));
+}
+let lastFocusedTextarea = null;
+document.addEventListener("focusin", e => {
+  if (e.target.tagName === "TEXTAREA") lastFocusedTextarea = e.target;
+});
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+const VIEWS = ["topics","mindmap","intro","body","conclusion","final","library","typing"];
+let currentView = "topics";
+
+function showView(view) {
+  currentView = view;
+  VIEWS.forEach(v => {
+    document.getElementById("view-" + v).classList.toggle("active", v === view);
+  });
+  document.querySelectorAll(".step-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  if (view === "topics") renderTopics();
+  if (view === "mindmap") renderMindmap();
+  if (view === "intro") renderIntro();
+  if (view === "body") renderBody();
+  if (view === "conclusion") renderConclusion();
+  if (view === "final") renderFinal();
+  if (view === "library") renderLibrary();
+  if (view === "typing") renderTyping();
+  window.scrollTo({ top:0, behavior:"instant" in window ? "instant" : "auto" });
+}
+
+document.querySelectorAll(".step-btn").forEach(btn => {
+  btn.addEventListener("click", () => showView(btn.dataset.view));
+});
+document.getElementById("newEssayBtn").addEventListener("click", () => {
+  store.currentId = null;
+  saveStore();
+  showView("topics");
+});
+document.getElementById("libraryBtn").addEventListener("click", () => showView("library"));
+document.getElementById("typingBtn").addEventListener("click", () => showView("typing"));
+
+/* ============================================================
+   1. TOPICS VIEW
+============================================================ */
+let previewTopicId = null;
+
+function renderTopics() {
+  const grid = document.getElementById("topicGrid");
+  const e = currentEssay();
+  grid.innerHTML = TOPICS.map(t => `
+    <div class="topic-card ${e && e.topicId===t.id ? "selected":""}" data-topic="${t.id}">
+      <div class="emoji">${t.emoji}</div>
+      <h3>${escapeHtml(t.title)}</h3>
+      <p class="ko">${escapeHtml(t.titleKo)}</p>
+    </div>`).join("");
+  grid.querySelectorAll(".topic-card").forEach(card => {
+    card.addEventListener("click", () => selectTopicPreview(card.dataset.topic));
+  });
+  document.getElementById("customTopicBtn").onclick = () => {
+    const val = document.getElementById("customTopicInput").value.trim();
+    if (!val) { alert("주제를 입력해주세요."); return; }
+    newEssay("custom", val);
+    showView("mindmap");
+  };
+  if (e && e.topicId) selectTopicPreview(e.topicId, true);
+}
+
+function selectTopicPreview(topicId, skipCreate) {
+  previewTopicId = topicId;
+  document.querySelectorAll(".topic-card").forEach(c => c.classList.toggle("selected", c.dataset.topic === topicId));
+  const topic = getTopic(topicId);
+  const card = document.getElementById("topicDetailCard");
+  card.style.display = "block";
+  document.getElementById("topicDetailTitle").innerHTML = `<span class="deco">${topic.emoji} </span>${escapeHtml(topic.title)}`;
+  document.getElementById("topicDetailKo").textContent = topic.titleKo;
+  document.getElementById("topicSampleBody").textContent = topic.sample || "이 주제는 예시글이 준비되어 있지 않아요. 나만의 이야기로 채워보세요!";
+  document.getElementById("startWithTopicBtn").onclick = () => {
+    newEssay(topicId, topicId === "custom" ? (document.getElementById("customTopicInput").value.trim()||"") : "");
+    showView("mindmap");
+  };
+}
+
+/* ============================================================
+   2. MIND MAP VIEW
+============================================================ */
+function renderMindmap() {
+  const e = ensureEssay();
+  const topic = getTopic(e.topicId);
+  const wrap = document.getElementById("mindmapWrap");
+  wrap.innerHTML = "";
+
+  // connectors first (so nodes render on top)
+  const rect = { w: wrap.clientWidth || 700, h: wrap.clientHeight || 520 };
+  const cx = rect.w/2, cy = rect.h/2;
+  const radius = Math.min(rect.w, rect.h)/2 - 90;
+  const n = e.mindmap.nodes.length;
+
+  e.mindmap.nodes.forEach((node, i) => {
+    const theta = (i * (360/8) - 90) * Math.PI/180;
+    const x = cx + radius*Math.cos(theta);
+    const y = cy + radius*Math.sin(theta);
+    const connector = document.createElement("div");
+    connector.className = "mm-connector";
+    connector.style.left = cx + "px";
+    connector.style.top = cy + "px";
+    connector.style.width = radius + "px";
+    connector.style.transform = `rotate(${(i*(360/8)-90)}deg)`;
+    wrap.appendChild(connector);
+
+    const nodeEl = document.createElement("div");
+    nodeEl.className = "mm-node";
+    nodeEl.style.left = x + "px";
+    nodeEl.style.top = y + "px";
+    nodeEl.contentEditable = "true";
+    nodeEl.textContent = node.text;
+    nodeEl.addEventListener("input", () => { node.text = nodeEl.textContent; touch(); });
+    const del = document.createElement("div");
+    del.className = "mm-del";
+    del.textContent = "×";
+    del.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      e.mindmap.nodes = e.mindmap.nodes.filter(x => x.id !== node.id);
+      touch();
+      renderMindmap();
+    });
+    nodeEl.appendChild(del);
+    wrap.appendChild(nodeEl);
+  });
+
+  const centerEl = document.createElement("div");
+  centerEl.className = "mm-node center";
+  centerEl.style.left = cx + "px";
+  centerEl.style.top = cy + "px";
+  centerEl.contentEditable = "true";
+  centerEl.textContent = e.mindmap.center || (topic ? topic.title : "What is the topic?");
+  centerEl.addEventListener("input", () => { e.mindmap.center = centerEl.textContent; touch(); });
+  wrap.appendChild(centerEl);
+
+  document.getElementById("mmCount").textContent = `${n} / 8개`;
+  document.getElementById("mmAddNodeBtn").disabled = n >= 8;
+
+  const hintWrap = document.getElementById("mmHintChips");
+  const hints = topic ? topic.bodyQuestions : [];
+  hintWrap.innerHTML = hints.map(h => `<span class="chip mm-hint"><span class="deco">💡 </span>${escapeHtml(h)}</span>`).join("");
+}
+document.getElementById("mmAddNodeBtn").addEventListener("click", () => {
+  const e = ensureEssay();
+  if (e.mindmap.nodes.length >= 8) return;
+  e.mindmap.nodes.push({ id: genId(), text: "새 아이디어" });
+  touch();
+  renderMindmap();
+});
+document.getElementById("mmSendToBodyBtn").addEventListener("click", () => {
+  const e = ensureEssay();
+  const texts = e.mindmap.nodes.map(n => n.text.trim()).filter(Boolean);
+  if (texts.length === 0) { alert("마인드맵에 아이디어를 먼저 추가해주세요."); return; }
+  texts.forEach((t, i) => {
+    if (!e.body[i]) e.body.push({ mainPoint:"", details:["",""] });
+    if (!e.body[i].mainPoint) e.body[i].mainPoint = t;
+    else if (!e.body[i].details[0]) e.body[i].details[0] = t;
+  });
+  touch();
+  showView("body");
+});
+window.addEventListener("resize", () => { if (currentView === "mindmap") renderMindmap(); });
+
+/* ============================================================
+   3. INTRO VIEW
+============================================================ */
+function renderIntro() {
+  const e = ensureEssay();
+  const topic = getTopic(e.topicId);
+  document.getElementById("introTarget").textContent = `목표: ${TARGETS.intro[0]}~${TARGETS.intro[1]}문장 — Topic → Hook/Question → Transition → Topic Sentence 순서로 채워보세요.`;
+
+  const topicInput = document.getElementById("introTopicInput");
+  topicInput.value = e.intro.topic || e.mindmap.center || "";
+  topicInput.oninput = () => { e.intro.topic = topicInput.value; touch(); renderIntroPreview(); };
+
+  const hookInput = document.getElementById("hookInput");
+  hookInput.value = e.intro.hook;
+  hookInput.oninput = () => { e.intro.hook = hookInput.value; touch(); renderIntroPreview(); };
+
+  const transitionInput = document.getElementById("transitionInput");
+  transitionInput.value = e.intro.transition;
+  transitionInput.oninput = () => { e.intro.transition = transitionInput.value; touch(); renderIntroPreview(); };
+
+  const topicSentenceInput = document.getElementById("topicSentenceInput");
+  topicSentenceInput.value = e.intro.topicSentence;
+  topicSentenceInput.oninput = () => { e.intro.topicSentence = topicSentenceInput.value; touch(); renderIntroPreview(); };
+
+  document.getElementById("hookChips").innerHTML = (topic.hooks||[]).map(h => `<span class="chip" data-target="hookInput">${escapeHtml(h)}</span>`).join("");
+  document.getElementById("transitionChips").innerHTML = (topic.transitions||[]).map(h => `<span class="chip" data-target="transitionInput">${escapeHtml(h)}</span>`).join("");
+  document.getElementById("topicSentenceChips").innerHTML = (topic.topicSentences||[]).map(h => `<span class="chip" data-target="topicSentenceInput">${escapeHtml(h)}</span>`).join("");
+
+  document.querySelectorAll("#hookChips .chip, #transitionChips .chip, #topicSentenceChips .chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const target = document.getElementById(chip.dataset.target);
+      target.value = target.value ? target.value : chip.textContent;
+      target.dispatchEvent(new Event("input"));
+    });
+  });
+
+  renderIntroPreview();
+}
+function renderIntroPreview() {
+  const e = currentEssay(); if (!e) return;
+  const parts = [e.intro.hook, e.intro.transition, e.intro.topicSentence].map(s => s.trim()).filter(Boolean);
+  const text = parts.join(" ");
+  document.getElementById("introPreview").textContent = text || "아직 작성한 내용이 없어요. 위 칸을 채워보세요!";
+  const count = countSentences(text);
+  const countEl = document.getElementById("introCount");
+  countEl.textContent = `${count}문장`;
+  countEl.className = "count " + (count >= TARGETS.intro[0] ? "ok" : "");
+}
+
+/* ============================================================
+   4. BODY VIEW
+============================================================ */
+function renderBody() {
+  const e = ensureEssay();
+  const topic = getTopic(e.topicId);
+  document.getElementById("bodyTarget").textContent = `목표: 문단마다 ${TARGETS.bodyPerCol[0]}~${TARGETS.bodyPerCol[1]}문장 — 각 문단마다 Main Point(핵심 문장) → Detail 1 → Detail 2 순서로 써보세요.`;
+
+  document.getElementById("transitionBank").innerHTML = TRANSITION_WORDS.map(w => `<span class="chip transition-chip">${escapeHtml(w)}</span>`).join("");
+  document.querySelectorAll(".transition-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      if (lastFocusedTextarea) insertAtCursor(lastFocusedTextarea, chip.textContent);
+    });
+  });
+
+  const colsWrap = document.getElementById("bodyColumns");
+  colsWrap.innerHTML = "";
+  e.body.forEach((col, i) => {
+    const colorName = BODY_COLORS[i % BODY_COLORS.length];
+    const hint = topic && topic.bodyHints ? topic.bodyHints[i % topic.bodyHints.length] : "";
+    const colEl = document.createElement("div");
+    colEl.className = "body-col";
+    colEl.style.borderColor = `var(--${colorName}-border)`;
+    colEl.innerHTML = `
+      <div class="col-head" style="background:var(--${colorName});color:var(--${colorName}-text);">
+        <span>Body ${i+1} — Main Point</span>
+        ${e.body.length > 1 ? `<button class="remove-col-btn" title="이 문단 삭제">✕</button>` : ""}
+      </div>
+      <div class="col-body">
+        <div class="detail-label" style="color:var(--${colorName}-text);">${hint ? escapeHtml(hint) : "핵심 문장"}</div>
+        <textarea class="mainPointInput" placeholder="예: First, I will tell you about..."></textarea>
+        <div class="mini-arrow">↓</div>
+        ${col.details.map((d, di) => `
+          <div class="detail-label" style="color:var(--${colorName}-text);">Detail ${di+1}</div>
+          <textarea class="detailInput" data-idx="${di}" placeholder="자세한 내용을 적어보세요"></textarea>
+          ${di < col.details.length-1 ? '<div class="mini-arrow">↓</div>' : ""}
+        `).join("")}
+        <div style="margin-top:8px; display:flex; gap:6px;">
+          ${col.details.length < 4 ? `<button class="btn small add-detail-btn">+ Detail 추가</button>` : ""}
+        </div>
+      </div>`;
+    const mainInput = colEl.querySelector(".mainPointInput");
+    mainInput.value = col.mainPoint;
+    mainInput.oninput = () => { col.mainPoint = mainInput.value; touch(); updateBodyCount(); };
+    colEl.querySelectorAll(".detailInput").forEach(dInput => {
+      const di = parseInt(dInput.dataset.idx, 10);
+      dInput.value = col.details[di] || "";
+      dInput.oninput = () => { col.details[di] = dInput.value; touch(); updateBodyCount(); };
+    });
+    const removeBtn = colEl.querySelector(".remove-col-btn");
+    if (removeBtn) removeBtn.addEventListener("click", () => {
+      e.body.splice(i,1); touch(); renderBody();
+    });
+    const addDetailBtn = colEl.querySelector(".add-detail-btn");
+    if (addDetailBtn) addDetailBtn.addEventListener("click", () => {
+      col.details.push(""); touch(); renderBody();
+    });
+    colsWrap.appendChild(colEl);
+  });
+
+  if (e.body.length < 5) {
+    const addCard = document.createElement("div");
+    addCard.className = "add-col-card";
+    addCard.textContent = "+ 새로운 문단 추가";
+    addCard.addEventListener("click", () => {
+      e.body.push({ mainPoint:"", details:["",""] });
+      touch(); renderBody();
+    });
+    colsWrap.appendChild(addCard);
+  }
+  updateBodyCount();
+}
+function updateBodyCount() {
+  const e = currentEssay(); if (!e) return;
+  const text = e.body.map(c => [c.mainPoint, ...c.details].filter(Boolean).join(" ")).join(" ");
+  const count = countSentences(text);
+  const countEl = document.getElementById("bodyCount");
+  countEl.textContent = `${count}문장`;
+  countEl.className = "count " + (count >= TARGETS.bodyPerCol[0]*3 ? "ok" : "");
+}
+
+/* ============================================================
+   5. CONCLUSION VIEW
+============================================================ */
+function renderConclusion() {
+  const e = ensureEssay();
+  const topic = getTopic(e.topicId);
+  document.getElementById("conclusionTarget").textContent = `목표: ${TARGETS.conclusion[0]}~${TARGETS.conclusion[1]}문장 — 서론의 핵심 생각을 다른 말로 다시 쓰고(Retell), 전환어로 마무리해요.`;
+
+  document.getElementById("conclusionChips").innerHTML = TRANSITION_WORDS.slice(0,8).map(w => `<span class="chip transition-chip">${escapeHtml(w)}</span>`).join("");
+  document.querySelectorAll("#conclusionChips .transition-chip").forEach(chip => {
+    chip.addEventListener("click", () => insertAtCursor(document.getElementById("conclusionRetellInput"), chip.textContent));
+  });
+
+  const retellInput = document.getElementById("conclusionRetellInput");
+  retellInput.value = e.conclusion.retell;
+  retellInput.oninput = () => { e.conclusion.retell = retellInput.value; touch(); updateConclusionCount(); };
+
+  const extraInput = document.getElementById("conclusionExtraInput");
+  extraInput.value = e.conclusion.extra;
+  extraInput.oninput = () => { e.conclusion.extra = extraInput.value; touch(); updateConclusionCount(); };
+
+  const qBox = document.getElementById("conclusionQuestionsBox");
+  qBox.innerHTML = `<div class="section-label" style="margin-bottom:6px;"><span class="deco">💡 </span>생각해볼 질문</div><ul>${(topic.conclusionQuestions||[]).map(q => `<li>${escapeHtml(q)}</li>`).join("")}</ul>`;
+
+  updateConclusionCount();
+}
+function updateConclusionCount() {
+  const e = currentEssay(); if (!e) return;
+  const text = [e.conclusion.retell, e.conclusion.extra].filter(Boolean).join(" ");
+  const count = countSentences(text);
+  const countEl = document.getElementById("conclusionCount");
+  countEl.textContent = `${count}문장`;
+  countEl.className = "count " + (count >= TARGETS.conclusion[0] ? "ok" : "");
+}
+
+/* ============================================================
+   6. FINAL VIEW
+============================================================ */
+function buildParagraphs(e) {
+  const introText = [e.intro.hook, e.intro.transition, e.intro.topicSentence].map(s=>s.trim()).filter(Boolean).join(" ");
+  const bodyTexts = e.body.map(c => [c.mainPoint, ...c.details].map(s=>(s||"").trim()).filter(Boolean).join(" ")).filter(Boolean);
+  const conclusionText = [e.conclusion.retell, e.conclusion.extra].map(s=>(s||"").trim()).filter(Boolean).join(" ");
+  return { introText, bodyTexts, conclusionText };
+}
+function renderFinal() {
+  const e = ensureEssay();
+  const titleInput = document.getElementById("essayTitleInput");
+  titleInput.value = e.title || "";
+  titleInput.oninput = () => { e.title = titleInput.value; touch(); document.getElementById("finalTitleDisplay").textContent = e.title; };
+
+  const { introText, bodyTexts, conclusionText } = buildParagraphs(e);
+  document.getElementById("finalTitleDisplay").textContent = e.title || "제목 없는 글";
+  const bodyWrap = document.getElementById("finalEssayBody");
+  const paragraphs = [introText, ...bodyTexts, conclusionText].filter(Boolean);
+  bodyWrap.innerHTML = paragraphs.length
+    ? paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join("")
+    : `<p style="text-indent:0;color:#bbb;">아직 작성한 내용이 없어요. 서론·본론·결론 단계에서 글을 채워보세요.</p>`;
+
+  const introCount = countSentences(introText);
+  const bodyCount = countSentences(bodyTexts.join(" "));
+  const conclusionCount = countSentences(conclusionText);
+  const progressRow = document.getElementById("progressRow");
+  progressRow.innerHTML = [
+    { label:"서론", count: introCount, target: TARGETS.intro[0] },
+    { label:"본론", count: bodyCount, target: TARGETS.bodyPerCol[0]*e.body.length },
+    { label:"결론", count: conclusionCount, target: TARGETS.conclusion[0] }
+  ].map(x => `<span class="progress-pill ${x.count>=x.target?"ok":""}">${x.label} ${x.count}/${x.target}문장 ${x.count>=x.target?'<span class="deco">✅</span>':""}</span>`).join("");
+
+  document.getElementById("saveEssayBtn").onclick = () => {
+    touch();
+    alert("저장했어요! '내 글 목록'에서 다시 열어볼 수 있어요.");
+  };
+  document.getElementById("copyEssayBtn").onclick = async () => {
+    const text = paragraphs.map(p => "  " + p).join("\n\n");
+    try { await navigator.clipboard.writeText((e.title||"") + "\n\n" + text); alert("복사했어요!"); }
+    catch(err) { alert("복사에 실패했어요. 직접 선택해서 복사해주세요."); }
+  };
+  document.getElementById("exportEssayBtn").onclick = () => {
+    const text = (e.title||"제목 없는 글") + "\n\n" + paragraphs.map(p => "  " + p).join("\n\n");
+    const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (e.title || "essay").replace(/[^\w가-힣 -]/g,"") + ".txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  document.getElementById("printEssayBtn").onclick = () => window.print();
+}
+
+/* ============================================================
+   LIBRARY VIEW
+============================================================ */
+function renderLibrary() {
+  const wrap = document.getElementById("essayListWrap");
+  const list = Object.values(store.essays).sort((a,b) => b.updatedAt - a.updatedAt);
+  if (list.length === 0) {
+    wrap.innerHTML = `<p class="empty-note">아직 저장된 글이 없어요. "새 글 시작하기"로 첫 글을 써보세요!</p>`;
+    return;
+  }
+  wrap.innerHTML = list.map(es => {
+    const topic = getTopic(es.topicId);
+    const date = new Date(es.updatedAt).toLocaleDateString("ko-KR");
+    return `
+    <div class="essay-list-item">
+      <div>
+        <div class="title">${topic ? `<span class="deco">${topic.emoji} </span>` : ""}${escapeHtml(es.title || "제목 없는 글")}</div>
+        <div class="meta">${escapeHtml(topic ? topic.title : "")} · ${date} 수정</div>
+      </div>
+      <div class="btn-row" style="display:flex;gap:6px;">
+        <button class="btn small" data-open="${es.id}">열기</button>
+        <button class="btn small danger" data-del="${es.id}">삭제</button>
+      </div>
+    </div>`;
+  }).join("");
+  wrap.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => {
+    store.currentId = b.dataset.open; saveStore(); showView("final");
+  }));
+  wrap.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    if (!confirm("이 글을 삭제할까요? 되돌릴 수 없어요.")) return;
+    delete store.essays[b.dataset.del];
+    if (store.currentId === b.dataset.del) store.currentId = null;
+    saveStore();
+    renderLibrary();
+  }));
+}
+
+/* ============================================================
+   TYPING PRACTICE
+============================================================ */
+const TYPING_CONTENT = {
+  words: {
+    kids: ["cat","dog","sun","run","play","book","happy","jump","school","friend","apple","water","smile","green","house","little","funny","garden","summer","winter","family","animal","yellow","purple","flower","rabbit","turtle","pencil","letter","monkey"],
+    teen: ["adventure","curious","imagine","favorite","although","beautiful","opinion","perspective","achieve","challenge","describe","discover","environment","experience","important","knowledge","memory","paragraph","persuade","reflect","strategy","structure","transition","vocabulary","because","however","therefore","especially","eventually","confidence"]
+  },
+  sentences: {
+    kids: [
+      "I like to play baseball.",
+      "My favorite color is yellow.",
+      "The dog runs in the park.",
+      "We eat pizza on Friday.",
+      "She has a big red bag.",
+      "I love my family very much.",
+      "The sun is hot today.",
+      "He plays with his friends.",
+      "My cat likes to sleep.",
+      "We go to school every day.",
+      "I can read a fun book.",
+      "The flowers are pretty and pink.",
+      "My best memory is my birthday.",
+      "I feel happy when I win.",
+      "We watch a movie at night."
+    ],
+    teen: [
+      "Have you ever thought about which color is the most beautiful?",
+      "I think baseball is the most exciting sport of all.",
+      "Let me tell you all about why I love this so much.",
+      "First, I will explain the most important reason.",
+      "Next, I would like to describe a special memory.",
+      "To sum up, this will always be my favorite because it makes me happy.",
+      "Although it was difficult, I learned an important lesson that day.",
+      "Many students believe that practice is the key to improvement.",
+      "However, not everyone agrees with this opinion.",
+      "In my opinion, reading every day improves your vocabulary.",
+      "Additionally, writing a little bit each day builds confidence.",
+      "Finally, I realized that mistakes can help us grow stronger.",
+      "Therefore, it is important to keep trying even when things are hard.",
+      "For example, my favorite place always reminds me of my family.",
+      "Overall, this experience taught me something I will never forget."
+    ]
+  }
+};
+const TYPING_LABELS = { words:"단어", sentences:"문장", transitions:"전환어", myessay:"내가 쓴 글" };
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function currentUiMode() { return document.body.classList.contains("mode-teen") ? "teen" : "kids"; }
+
+let typingState = { contentType: "sentences", target: "", startTime: null, timerId: null, finished: false };
+
+function generateTypingTarget(contentType) {
+  const uiMode = currentUiMode();
+  if (contentType === "words") return shuffleArray(TYPING_CONTENT.words[uiMode]).slice(0, 12).join(" ");
+  if (contentType === "sentences") return shuffleArray(TYPING_CONTENT.sentences[uiMode]).slice(0, 3).join(" ");
+  if (contentType === "transitions") return shuffleArray(TRANSITION_WORDS).join(", ") + ".";
+  if (contentType === "myessay") {
+    const e = currentEssay();
+    if (e) {
+      const { introText, bodyTexts, conclusionText } = buildParagraphs(e);
+      const full = [introText, ...bodyTexts, conclusionText].filter(Boolean).join(" ");
+      if (full.trim()) return full;
+    }
+    return "";
+  }
+  return "";
+}
+
+function renderTypingTargetHtml(target, typed) {
+  let html = "";
+  for (let i = 0; i < target.length; i++) {
+    const ch = target[i];
+    let cls = "tc-pending";
+    if (i < typed.length) cls = typed[i] === ch ? "tc-correct" : "tc-wrong";
+    else if (i === typed.length) cls = "tc-current";
+    html += `<span class="${cls}">${escapeHtml(ch)}</span>`;
+  }
+  return html;
+}
+
+function resetTyping(newTarget) {
+  if (typingState.timerId) clearInterval(typingState.timerId);
+  typingState.target = newTarget !== undefined ? newTarget : generateTypingTarget(typingState.contentType);
+  typingState.startTime = null;
+  typingState.timerId = null;
+  typingState.finished = false;
+  const input = document.getElementById("typingInput");
+  input.value = "";
+  input.disabled = !typingState.target;
+  document.getElementById("typingResult").classList.remove("show");
+  document.getElementById("typingWpm").textContent = "0";
+  document.getElementById("typingAccuracy").textContent = "100%";
+  document.getElementById("typingTime").textContent = "0s";
+  document.getElementById("typingMistakes").textContent = "0";
+  if (typingState.target) {
+    document.getElementById("typingTarget").innerHTML = renderTypingTargetHtml(typingState.target, "");
+    input.focus();
+  } else {
+    document.getElementById("typingTarget").innerHTML = `<span class="typing-empty-msg">아직 완성된 글이 없어요. "완성된 글" 단계에서 먼저 글을 써보세요!</span>`;
+  }
+}
+
+function computeTypingStats(typed) {
+  const target = typingState.target;
+  let correct = 0;
+  const len = Math.min(typed.length, target.length);
+  for (let i = 0; i < len; i++) if (typed[i] === target[i]) correct++;
+  const mistakes = typed.length - correct;
+  const accuracy = typed.length ? Math.round((correct / typed.length) * 100) : 100;
+  const elapsedMin = typingState.startTime ? (performance.now() - typingState.startTime) / 60000 : 0;
+  const wpm = elapsedMin > 0 ? Math.round((correct / 5) / elapsedMin) : 0;
+  const elapsedSec = typingState.startTime ? Math.round((performance.now() - typingState.startTime) / 1000) : 0;
+  return { correct, mistakes, accuracy, wpm, elapsedSec };
+}
+
+function updateTypingStatsDisplay(typed) {
+  const stats = computeTypingStats(typed);
+  document.getElementById("typingWpm").textContent = stats.wpm;
+  document.getElementById("typingAccuracy").textContent = stats.accuracy + "%";
+  document.getElementById("typingTime").textContent = stats.elapsedSec + "s";
+  document.getElementById("typingMistakes").textContent = stats.mistakes;
+  return stats;
+}
+
+function finishTyping(typed) {
+  if (typingState.finished) return;
+  typingState.finished = true;
+  if (typingState.timerId) clearInterval(typingState.timerId);
+  const stats = updateTypingStatsDisplay(typed);
+  document.getElementById("typingInput").disabled = true;
+  document.getElementById("typingResult").classList.add("show");
+  document.getElementById("typingResultSummary").textContent =
+    `WPM ${stats.wpm} · 정확도 ${stats.accuracy}% · 시간 ${stats.elapsedSec}초 · 실수 ${stats.mistakes}개`;
+  if (!store.typingHistory) store.typingHistory = [];
+  store.typingHistory.unshift({ date: Date.now(), contentType: typingState.contentType, wpm: stats.wpm, accuracy: stats.accuracy, mode: currentUiMode() });
+  store.typingHistory = store.typingHistory.slice(0, 20);
+  saveStore();
+  renderTypingHistory();
+}
+
+function renderTypingHistory() {
+  const wrap = document.getElementById("typingHistoryList");
+  const list = store.typingHistory || [];
+  if (list.length === 0) {
+    wrap.innerHTML = `<p class="empty-note">아직 연습 기록이 없어요. 위에서 첫 연습을 시작해보세요!</p>`;
+    return;
+  }
+  wrap.innerHTML = list.map(r => `
+    <div class="typing-history-row">
+      <span>${new Date(r.date).toLocaleDateString("ko-KR")} · ${escapeHtml(TYPING_LABELS[r.contentType] || r.contentType)}</span>
+      <span><strong>${r.wpm}</strong> WPM · ${r.accuracy}%</span>
+    </div>`).join("");
+}
+
+function renderTyping() {
+  document.querySelectorAll(".typing-mode-btn").forEach(b => b.classList.toggle("active", b.dataset.type === typingState.contentType));
+  resetTyping();
+  renderTypingHistory();
+}
+
+document.querySelectorAll(".typing-mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    typingState.contentType = btn.dataset.type;
+    document.querySelectorAll(".typing-mode-btn").forEach(b => b.classList.toggle("active", b === btn));
+    resetTyping();
+  });
+});
+const typingInputEl = document.getElementById("typingInput");
+typingInputEl.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault(); });
+typingInputEl.addEventListener("paste", e => e.preventDefault());
+typingInputEl.addEventListener("input", () => {
+  if (typingState.finished || !typingState.target) return;
+  const typed = typingInputEl.value;
+  if (!typingState.startTime && typed.length > 0) {
+    typingState.startTime = performance.now();
+    typingState.timerId = setInterval(() => updateTypingStatsDisplay(typingInputEl.value), 500);
+  }
+  document.getElementById("typingTarget").innerHTML = renderTypingTargetHtml(typingState.target, typed);
+  updateTypingStatsDisplay(typed);
+  if (typed.length >= typingState.target.length) finishTyping(typed);
+});
+document.getElementById("typingRestartBtn").addEventListener("click", () => resetTyping(typingState.target));
+document.getElementById("typingNewBtn").addEventListener("click", () => resetTyping());
+document.getElementById("typingStopBtn").addEventListener("click", () => {
+  if (!typingState.startTime || typingState.finished) return;
+  finishTyping(typingInputEl.value);
+});
+
+/* ============================================================
+   MODE (kids / teen)
+============================================================ */
+function applyMode(mode) {
+  document.body.classList.toggle("mode-teen", mode === "teen");
+  document.body.classList.toggle("mode-kids", mode === "kids");
+  document.querySelectorAll(".mode-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+}
+function setMode(mode) {
+  store.mode = mode;
+  saveStore();
+  applyMode(mode);
+  if (currentView === "mindmap") renderMindmap();
+}
+document.querySelectorAll(".mode-btn").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+document.querySelectorAll(".mode-overlay-option").forEach(b => b.addEventListener("click", () => {
+  setMode(b.dataset.mode);
+  document.getElementById("modeOverlay").style.display = "none";
+}));
+
+/* ============================================================
+   INIT
+============================================================ */
+if (store.mode) {
+  applyMode(store.mode);
+} else {
+  applyMode("kids");
+  document.getElementById("modeOverlay").style.display = "flex";
+}
+showView("topics");
+</script>
+</body>
+</html>
