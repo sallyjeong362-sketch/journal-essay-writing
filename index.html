@@ -418,12 +418,21 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
 .ws-box { border:2px solid #555; border-radius:10px; padding:8px 12px 6px; margin-bottom:8px; }
 .ws-box .ws-label { font-weight:700; font-size:13px; margin-bottom:1px; }
 .ws-box .ws-hint { font-size:10.5px; color:#777; margin-bottom:4px; }
-.ws-line { border-bottom:1.5px solid #aaa; height:27px; }
+.ws-line { border-bottom:1.5px solid #aaa; height:34px; }
+.ws-eng-line {
+  height:46px; margin:4px 0 10px;
+  background:
+    linear-gradient(#aac3de, #aac3de) 0 0 / 100% 1.5px no-repeat,
+    repeating-linear-gradient(to right, #b9cde0 0 9px, transparent 9px 16px) 0 33% / 100% 1.5px no-repeat,
+    linear-gradient(#e08585, #e08585) 0 67% / 100% 2px no-repeat,
+    linear-gradient(#aac3de, #aac3de) 0 100% / 100% 1.5px no-repeat;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
 .ws-arrow { text-align:center; font-size:13px; margin:1px 0; color:#555; }
 .ws-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; align-items:start; }
 .ws-mm-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; align-items:stretch; margin-top:8px; }
-.ws-oval { border:2.5px solid #c05a5a; border-radius:50%; min-height:98px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11.5px; color:#999; padding:10px; }
-.ws-oval.center { border-width:3.5px; font-weight:700; color:#333; font-size:13px; min-height:112px; }
+.ws-oval { border:2.5px solid #c05a5a; border-radius:50%; min-height:122px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11.5px; color:#999; padding:12px; }
+.ws-oval.center { border-width:3.5px; font-weight:700; color:#333; font-size:13px; min-height:138px; }
 .ws-note { font-size:10.5px; color:#666; line-height:1.6; }
 .ws-wordbank { border:1.5px dashed #999; border-radius:8px; padding:6px 10px; font-size:11px; margin-top:8px; line-height:1.7; }
 .ws-qlist { margin:4px 0 8px; padding-left:1.2rem; font-size:11.5px; color:#555; line-height:1.7; }
@@ -1610,7 +1619,10 @@ function renderHome() {
 /* ============================================================
    PRINTABLE WORKSHEETS (offline handwriting)
 ============================================================ */
-function wsLines(n) { return Array.from({length:n}, () => '<div class="ws-line"></div>').join(""); }
+function wsLines(n) {
+  const cls = currentUiMode() === "kids" ? "ws-eng-line" : "ws-line";
+  return Array.from({length:n}, () => `<div class="${cls}"></div>`).join("");
+}
 function wsHead(title) {
   return `<div class="ws-head"><h2>✏️ 나의 글쓰기 노트 — ${title}</h2><span class="ws-nd">Name: ____________ &nbsp; Date: ____________</span></div>`;
 }
@@ -1621,6 +1633,7 @@ function buildWorksheetHTML(part) {
   const e = currentEssay();
   const topic = e ? getTopic(e.topicId) : null;
   const topicTitle = e ? (e.customTitle || (topic && topic.id !== "custom" ? topic.title : (e.intro.topic || ""))) : "";
+  const K = currentUiMode() === "kids";
   const pages = [];
 
   if (part === "mindmap" || part === "all") {
@@ -1643,11 +1656,11 @@ function buildWorksheetHTML(part) {
     pages.push(`<div class="ws-page">
       ${wsHead("서론 (Introduction)")}
       ${wsTopicBar(topicTitle)}
-      <div class="ws-box"><div class="ws-label">1. Hook / Question — 질문으로 흥미 끌기</div><div class="ws-hint">${hookHint}</div>${wsLines(3)}</div>
+      <div class="ws-box"><div class="ws-label">1. Hook / Question — 질문으로 흥미 끌기</div><div class="ws-hint">${hookHint}</div>${wsLines(K?3:4)}</div>
       <div class="ws-arrow">▼</div>
-      <div class="ws-box"><div class="ws-label">2. Transition (Answer the question) — 질문에 답하기</div><div class="ws-hint">${transHint}</div>${wsLines(3)}</div>
+      <div class="ws-box"><div class="ws-label">2. Transition (Answer the question) — 질문에 답하기</div><div class="ws-hint">${transHint}</div>${wsLines(K?3:4)}</div>
       <div class="ws-arrow">▼</div>
-      <div class="ws-box"><div class="ws-label">3. Introduce Topic — Let me tell you... / I will explain...</div><div class="ws-hint">${tsHint}</div>${wsLines(3)}</div>
+      <div class="ws-box"><div class="ws-label">3. Introduce Topic — Let me tell you... / I will explain...</div><div class="ws-hint">${tsHint}</div>${wsLines(K?3:4)}</div>
     </div>`);
   }
 
@@ -1655,11 +1668,11 @@ function buildWorksheetHTML(part) {
     const hints = (topic && topic.bodyHints) || ["첫 번째 중요한 내용","두 번째 중요한 내용","세 번째 중요한 내용"];
     const cols = [0,1,2].map(i => `
       <div>
-        <div class="ws-box"><div class="ws-label">Body ${i+1} — Main point</div><div class="ws-hint">${escapeHtml(hints[i % hints.length])}</div>${wsLines(3)}</div>
+        <div class="ws-box"><div class="ws-label">Body ${i+1} — Main point</div><div class="ws-hint">${escapeHtml(hints[i % hints.length])}</div>${wsLines(K?2:3)}</div>
         <div class="ws-arrow">▼</div>
-        <div class="ws-box"><div class="ws-label">Detail 1</div>${wsLines(4)}</div>
+        <div class="ws-box"><div class="ws-label">Detail 1</div>${wsLines(K?3:4)}</div>
         <div class="ws-arrow">▼</div>
-        <div class="ws-box"><div class="ws-label">Detail 2</div>${wsLines(4)}</div>
+        <div class="ws-box"><div class="ws-label">Detail 2</div>${wsLines(K?3:4)}</div>
       </div>`).join("");
     pages.push(`<div class="ws-page">
       ${wsHead("본론 (Body)")}
@@ -1674,7 +1687,7 @@ function buildWorksheetHTML(part) {
     pages.push(`<div class="ws-page">
       ${wsHead("결론 (Conclusion)")}
       ${wsTopicBar(topicTitle)}
-      <div class="ws-box"><div class="ws-label">Closing — Retell your main idea (핵심 생각을 다른 말로 다시 쓰기)</div><div class="ws-hint">예: To sum up, ... will always be my favorite ... because ...</div>${wsLines(5)}</div>
+      <div class="ws-box"><div class="ws-label">Closing — Retell your main idea (핵심 생각을 다른 말로 다시 쓰기)</div><div class="ws-hint">예: To sum up, ... will always be my favorite ... because ...</div>${wsLines(K?5:6)}</div>
       ${qs.length ? `<div class="ws-note"><strong>💡 생각해볼 질문</strong><ul class="ws-qlist">${qs.map(q => `<li>${escapeHtml(q)}</li>`).join("")}</ul></div>` : ""}
       <div class="ws-wordbank"><strong>마무리 전환어:</strong> Finally · Last · To conclude · To sum up · Overall</div>
       <div class="ws-reminder"><strong>✅ 체크리스트</strong> — 문단 시작은 두 칸 들여쓰기 · 문단 사이 한 줄 띄우기 · 새 아이디어는 전환어로 시작 · 서론/결론 3~5문장, 본론 문단마다 3~5문장</div>
