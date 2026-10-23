@@ -312,6 +312,87 @@ body.mode-teen .mascot-float { width:62px; }
 .card { overflow:hidden; }
 @media (max-width:640px) { .mascot-float { width:80px; } }
 
+/* -------- playful app shell (kids) -------- */
+body.mode-kids {
+  background-image:
+    radial-gradient(circle at 10% 15%, rgba(255,255,255,0.55) 0 90px, transparent 91px),
+    radial-gradient(circle at 90% 28%, rgba(255,255,255,0.45) 0 70px, transparent 71px),
+    radial-gradient(circle at 18% 88%, rgba(255,255,255,0.4) 0 110px, transparent 111px),
+    radial-gradient(rgba(255,255,255,0.4) 17%, transparent 18%),
+    linear-gradient(160deg, #e6f3da 0%, #fdf4dd 55%, #e0efe4 100%);
+  background-size: auto, auto, auto, 26px 26px, cover;
+  background-attachment: fixed;
+}
+body.mode-kids .btn { border-radius:999px; }
+body.mode-kids .btn.primary { box-shadow:0 4px 0 #24506f; }
+body.mode-kids .btn.primary:active { transform:translateY(3px); box-shadow:0 1px 0 #24506f; }
+body.mode-kids .card { border-width:2px; box-shadow:0 6px 0 rgba(90,110,70,0.08); }
+body.mode-kids .reminder-card { box-shadow:0 6px 0 rgba(138,106,0,0.1); }
+
+/* -------- HUD (stars / essays / wpm) -------- */
+.hud { display:flex; gap:8px; flex-wrap:wrap; margin:-0.5rem 0 1rem; }
+.hud-pill {
+  display:flex; align-items:center; gap:5px; background:#fff; border:2px solid var(--green-border);
+  border-radius:999px; padding:4px 13px; font-size:12.5px; font-weight:800; color:#4a6a3f;
+  box-shadow:0 2px 0 rgba(0,0,0,0.06);
+}
+body.mode-teen .hud-pill { box-shadow:none; font-weight:600; color:#666; border-color:var(--line); border-width:1px; }
+
+/* -------- Sally greeting + speech bubble -------- */
+.sally-greet { display:flex; align-items:flex-end; gap:14px; margin-bottom:1.2rem; }
+.sally-greet img { width:118px; height:auto; flex:0 0 auto; }
+body.mode-teen .sally-greet img { width:70px; }
+.speech-bubble {
+  position:relative; background:#fff; border:2px solid var(--green-border); border-radius:18px;
+  padding:0.85rem 1.15rem; font-size:14.5px; font-weight:700; color:#4a6a3f;
+  box-shadow:0 3px 0 rgba(0,0,0,0.05); margin-bottom:20px;
+}
+.speech-bubble::before {
+  content:""; position:absolute; left:-16px; bottom:16px;
+  border:8px solid transparent; border-right-color:var(--green-border);
+}
+.speech-bubble::after {
+  content:""; position:absolute; left:-13px; bottom:16px;
+  border:8px solid transparent; border-right-color:#fff;
+}
+body.mode-teen .speech-bubble { box-shadow:none; font-weight:600; color:#555; }
+
+/* -------- adventure map (home) -------- */
+.map-path { position:relative; display:flex; flex-direction:column; gap:16px; padding:6px 0; }
+.map-path::before {
+  content:""; position:absolute; left:50%; top:34px; bottom:34px;
+  border-left:4px dotted #c3dab8; transform:translateX(-2px);
+}
+body.mode-teen .map-path::before { border-color:#d8d8d2; }
+.map-stage {
+  position:relative; z-index:1; display:flex; align-items:center; gap:13px; width:min(430px,100%);
+  background:#fff; border:2px solid var(--line); border-radius:22px; padding:0.65rem 1rem;
+  cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,0.06); transition:transform .12s; text-align:left;
+  font-family:inherit;
+}
+.map-stage:hover { transform:translateY(-3px); border-color:#9fc3e6; }
+.map-stage:active { transform:translateY(0); }
+.map-path .map-stage:nth-child(odd) { align-self:flex-start; }
+.map-path .map-stage:nth-child(even) { align-self:flex-end; }
+.map-stage.done { border-color:var(--green-border); background:#f4faf0; }
+.map-stage .m-emoji {
+  width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:26px; flex:0 0 auto; border:2px solid;
+}
+.map-stage .m-info { flex:1; min-width:0; }
+.map-stage .m-name { font-weight:800; font-size:15px; }
+.map-stage .m-desc { font-size:11.5px; color:#999; }
+.map-stage .m-star { font-size:17px; flex:0 0 auto; }
+.map-side { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:1.3rem; }
+.map-side .map-stage { width:100%; }
+body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
+@media (max-width:560px) {
+  .map-path::before { left:28px; }
+  .map-path .map-stage:nth-child(even) { align-self:flex-start; }
+  .map-side { grid-template-columns:1fr; }
+  .sally-greet img { width:92px; }
+}
+
 /* -------- library -------- */
 .essay-list-item {
   display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0.8rem 0;
@@ -376,7 +457,10 @@ body.mode-teen .mascot-float { width:62px; }
     </div>
   </header>
 
+  <div class="hud" id="hudBar"></div>
+
   <nav class="steps" id="stepsNav">
+    <button class="step-btn" data-view="home"><span class="deco">🏡 </span>홈</button>
     <button class="step-btn" data-view="topics"><span class="num">1</span> 주제 &amp; 예시글</button>
     <button class="step-btn" data-view="mindmap"><span class="num">2</span> 마인드맵</button>
     <button class="step-btn" data-view="intro"><span class="num">3</span> 서론 Introduction</button>
@@ -384,6 +468,20 @@ body.mode-teen .mascot-float { width:62px; }
     <button class="step-btn" data-view="conclusion"><span class="num">5</span> 결론 Conclusion</button>
     <button class="step-btn" data-view="final"><span class="num">6</span> 완성된 글</button>
   </nav>
+
+  <!-- ============ 0. HOME (adventure map) ============ -->
+  <section class="view" id="view-home">
+    <div class="card">
+      <div class="sally-greet">
+        <img src="img/sally-wave.webp" alt="샐리">
+        <div class="speech-bubble" id="homeBubble">안녕! 나는 샐리야. 오늘도 재미있는 글쓰기 모험을 떠나볼까? ✨</div>
+      </div>
+      <h2><span class="deco">🗺️ </span>글쓰기 모험 지도</h2>
+      <p class="desc">마을을 하나씩 지나며 나만의 글을 완성해보세요. 단계를 끝내면 별을 모을 수 있어요!</p>
+      <div class="map-path" id="mapPath"></div>
+      <div class="map-side" id="mapSide"></div>
+    </div>
+  </section>
 
   <!-- ============ 1. TOPICS ============ -->
   <section class="view" id="view-topics">
@@ -783,7 +881,7 @@ document.addEventListener("focusin", e => {
 /* ============================================================
    NAVIGATION
 ============================================================ */
-const VIEWS = ["topics","mindmap","intro","body","conclusion","final","library","typing"];
+const VIEWS = ["home","topics","mindmap","intro","body","conclusion","final","library","typing"];
 let currentView = "topics";
 
 function showView(view) {
@@ -792,6 +890,7 @@ function showView(view) {
     document.getElementById("view-" + v).classList.toggle("active", v === view);
   });
   document.querySelectorAll(".step-btn").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  if (view === "home") renderHome();
   if (view === "topics") renderTopics();
   if (view === "mindmap") renderMindmap();
   if (view === "intro") renderIntro();
@@ -800,6 +899,7 @@ function showView(view) {
   if (view === "final") renderFinal();
   if (view === "library") renderLibrary();
   if (view === "typing") renderTyping();
+  renderHud();
   window.scrollTo({ top:0, behavior:"instant" in window ? "instant" : "auto" });
 }
 
@@ -1393,6 +1493,89 @@ document.getElementById("typingStopBtn").addEventListener("click", () => {
 });
 
 /* ============================================================
+   HOME (adventure map) & HUD
+============================================================ */
+const STAGES = [
+  { view:"topics", emoji:"🗺️", name:"주제 나라", desc:"무엇을 쓸지 고르기", color:"pink" },
+  { view:"mindmap", emoji:"🌳", name:"아이디어 숲", desc:"마인드맵으로 생각 펼치기", color:"green" },
+  { view:"intro", emoji:"🏠", name:"서론 마을", desc:"Hook으로 멋지게 시작하기", color:"blue" },
+  { view:"body", emoji:"🏰", name:"본론 성", desc:"이야기를 차곡차곡 쌓기", color:"orange" },
+  { view:"conclusion", emoji:"🎀", name:"결론 언덕", desc:"내 생각으로 마무리하기", color:"purple" },
+  { view:"final", emoji:"🏆", name:"완성 탑", desc:"글을 완성하고 저장하기", color:"teal" }
+];
+const SIDE_STAGES = [
+  { view:"typing", emoji:"⌨️", name:"타이핑 놀이터", desc:"영어 타자 실력 키우기", color:"blue" },
+  { view:"library", emoji:"📚", name:"내 글 보관함", desc:"완성한 글 다시 보기", color:"green" }
+];
+const HOME_BUBBLES = [
+  "안녕! 나는 샐리야. 오늘도 재미있는 글쓰기 모험을 떠나볼까? ✨",
+  "글쓰기는 모험이야! 주제 나라부터 천천히 가보자! 🌱",
+  "오늘은 어떤 이야기를 써볼까? 샐리가 도와줄게! 💪",
+  "별을 모으면서 완성 탑까지 가보자! ⭐"
+];
+
+function essayStageDone(e) {
+  if (!e) return { topics:false, mindmap:false, intro:false, body:false, conclusion:false, final:false };
+  const introCount = countSentences([e.intro.hook, e.intro.transition, e.intro.topicSentence].join(" "));
+  const bodyCount = countSentences(e.body.map(c => [c.mainPoint, ...c.details].join(" ")).join(" "));
+  const conclusionCount = countSentences([e.conclusion.retell, e.conclusion.extra].join(" "));
+  const d = {
+    topics: !!e.topicId && (e.topicId !== "custom" || !!(e.customTitle || e.intro.topic)),
+    mindmap: e.mindmap.nodes.filter(n => n.text.trim()).length >= 3,
+    intro: introCount >= TARGETS.intro[0],
+    body: bodyCount >= TARGETS.bodyPerCol[0] * e.body.length,
+    conclusion: conclusionCount >= TARGETS.conclusion[0]
+  };
+  d.final = d.topics && d.mindmap && d.intro && d.body && d.conclusion;
+  return d;
+}
+function essayStars(e) {
+  const d = essayStageDone(e);
+  return ["topics","mindmap","intro","body","conclusion"].filter(k => d[k]).length;
+}
+function totalStars() {
+  return Object.values(store.essays).reduce((sum, e) => sum + essayStars(e), 0);
+}
+function bestWpm() {
+  return (store.typingHistory || []).reduce((m, r) => Math.max(m, r.wpm || 0), 0);
+}
+function renderHud() {
+  const hud = document.getElementById("hudBar");
+  const essayCount = Object.values(store.essays).filter(e => essayStageDone(e).final).length;
+  hud.innerHTML = `
+    <span class="hud-pill">⭐ ${totalStars()}</span>
+    <span class="hud-pill">🏆 완성한 글 ${essayCount}</span>
+    <span class="hud-pill">⌨️ 최고 ${bestWpm()} WPM</span>`;
+}
+function renderHome() {
+  document.getElementById("homeBubble").textContent = HOME_BUBBLES[Math.floor(Math.random() * HOME_BUBBLES.length)];
+  const e = currentEssay();
+  const done = essayStageDone(e);
+  const path = document.getElementById("mapPath");
+  path.innerHTML = STAGES.map(s => `
+    <button class="map-stage ${done[s.view] ? "done" : ""}" data-view="${s.view}">
+      <span class="m-emoji" style="background:var(--${s.color});border-color:var(--${s.color}-border);">${s.emoji}</span>
+      <span class="m-info">
+        <span class="m-name">${s.name}</span><br>
+        <span class="m-desc">${s.desc}</span>
+      </span>
+      <span class="m-star">${done[s.view] ? "⭐" : "☆"}</span>
+    </button>`).join("");
+  const side = document.getElementById("mapSide");
+  side.innerHTML = SIDE_STAGES.map(s => `
+    <button class="map-stage" data-view="${s.view}">
+      <span class="m-emoji" style="background:var(--${s.color});border-color:var(--${s.color}-border);">${s.emoji}</span>
+      <span class="m-info">
+        <span class="m-name">${s.name}</span><br>
+        <span class="m-desc">${s.desc}</span>
+      </span>
+    </button>`).join("");
+  document.querySelectorAll("#mapPath .map-stage, #mapSide .map-stage").forEach(b => {
+    b.addEventListener("click", () => showView(b.dataset.view));
+  });
+}
+
+/* ============================================================
    MODE (kids / teen)
 ============================================================ */
 function applyMode(mode) {
@@ -1421,7 +1604,7 @@ if (store.mode) {
   applyMode("kids");
   document.getElementById("modeOverlay").style.display = "flex";
 }
-showView("topics");
+showView("home");
 </script>
 </body>
 </html>
