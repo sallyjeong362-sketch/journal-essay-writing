@@ -407,10 +407,35 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
   .mm-node { min-width:96px; max-width:120px; font-size:11px; padding:8px 10px; }
   .mm-node.center { min-width:140px; max-width:160px; font-size:12.5px; }
 }
+/* -------- printable worksheets -------- */
+#wsPrintArea { display:none; }
+.ws-page { page-break-after:always; font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; color:#222; padding:2px; }
+.ws-page:last-child { page-break-after:auto; }
+.ws-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; border-bottom:3px solid #333; padding-bottom:6px; margin-bottom:14px; flex-wrap:wrap; }
+.ws-head h2 { font-size:17px; margin:0; }
+.ws-head .ws-nd { font-size:12px; white-space:nowrap; }
+.ws-topicbar { background:#f6dede; border:2px solid #c05a5a; border-radius:10px; padding:8px 12px; font-weight:700; font-size:14px; margin-bottom:10px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.ws-box { border:2px solid #555; border-radius:10px; padding:8px 12px 6px; margin-bottom:8px; }
+.ws-box .ws-label { font-weight:700; font-size:13px; margin-bottom:1px; }
+.ws-box .ws-hint { font-size:10.5px; color:#777; margin-bottom:4px; }
+.ws-line { border-bottom:1.5px solid #aaa; height:27px; }
+.ws-arrow { text-align:center; font-size:13px; margin:1px 0; color:#555; }
+.ws-grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; align-items:start; }
+.ws-mm-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; align-items:stretch; margin-top:8px; }
+.ws-oval { border:2.5px solid #c05a5a; border-radius:50%; min-height:98px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11.5px; color:#999; padding:10px; }
+.ws-oval.center { border-width:3.5px; font-weight:700; color:#333; font-size:13px; min-height:112px; }
+.ws-note { font-size:10.5px; color:#666; line-height:1.6; }
+.ws-wordbank { border:1.5px dashed #999; border-radius:8px; padding:6px 10px; font-size:11px; margin-top:8px; line-height:1.7; }
+.ws-qlist { margin:4px 0 8px; padding-left:1.2rem; font-size:11.5px; color:#555; line-height:1.7; }
+.ws-reminder { border:2px solid #c9a227; background:#fdf6d8; border-radius:10px; padding:8px 12px; font-size:11px; color:#6b5200; margin-top:10px; line-height:1.7; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
 @media print {
+  body { background:#fff !important; background-image:none !important; }
   body * { visibility:hidden; }
-  #printArea, #printArea * { visibility:visible; }
-  #printArea { position:absolute; top:0; left:0; width:100%; }
+  body:not(.printing-ws) #printArea, body:not(.printing-ws) #printArea * { visibility:visible; }
+  body:not(.printing-ws) #printArea { position:absolute; top:0; left:0; width:100%; }
+  body.printing-ws #wsPrintArea { display:block; position:absolute; top:0; left:0; width:100%; }
+  body.printing-ws #wsPrintArea, body.printing-ws #wsPrintArea * { visibility:visible; }
 }
 </style>
 </head>
@@ -518,6 +543,7 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
       <div class="mm-controls">
         <button class="btn primary small" id="mmAddNodeBtn"><span class="deco">🟠 </span>아이디어 추가</button>
         <button class="btn small" id="mmSendToBodyBtn"><span class="deco">➡️ </span>본론으로 보내기</button>
+        <button class="btn small ws-print-btn" data-ws="mindmap"><span class="deco">🖨️ </span>종이 워크시트 인쇄</button>
         <span class="count" id="mmCount" style="font-size:12px;color:#999;"></span>
       </div>
       <div class="mindmap-wrap" id="mindmapWrap"></div>
@@ -531,6 +557,7 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
       <img class="mascot-float" src="img/sally-writing.webp" alt="글 쓰는 샐리">
       <h2><span class="deco">📝 </span>서론 만들기 (Introduction)</h2>
       <p class="desc" id="introTarget">목표: 3~5문장 — Topic → Hook/Question → Transition → Topic Sentence 순서로 채워보세요.</p>
+      <div style="margin-bottom:0.9rem;"><button class="btn small ws-print-btn" data-ws="intro"><span class="deco">🖨️ </span>종이 워크시트 인쇄</button></div>
       <div class="flow">
         <div class="flow-box topic">
           <div class="box-title">Topic 주제</div>
@@ -572,6 +599,7 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
       <img class="mascot-float" src="img/sally-writing.webp" alt="글 쓰는 샐리">
       <h2><span class="deco">📚 </span>본론 만들기 (Body)</h2>
       <p class="desc" id="bodyTarget">목표: 문단마다 3~5문장 — 각 문단마다 Main Point(핵심 문장) → Detail 1 → Detail 2 순서로 써보세요.</p>
+      <div style="margin-bottom:0.9rem;"><button class="btn small ws-print-btn" data-ws="body"><span class="deco">🖨️ </span>종이 워크시트 인쇄</button></div>
       <div class="body-toolbar">
         <div>
           <div class="section-label">전환어 도우미 (Transition Words) — 클릭하면 커서 위치에 넣어줘요</div>
@@ -592,6 +620,7 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
       <img class="mascot-float" src="img/sally-writing.webp" alt="글 쓰는 샐리">
       <h2><span class="deco">🎀 </span>결론 만들기 (Conclusion)</h2>
       <p class="desc" id="conclusionTarget">목표: 3~5문장 — 서론의 핵심 생각을 다른 말로 다시 쓰고(Retell), 전환어로 마무리해요.</p>
+      <div style="margin-bottom:0.9rem;"><button class="btn small ws-print-btn" data-ws="conclusion"><span class="deco">🖨️ </span>종이 워크시트 인쇄</button></div>
       <div class="closing-bar">
         <div class="box-title">Closing — Retell your main idea</div>
         <div class="example-chip-row" id="conclusionChips"></div>
@@ -642,6 +671,7 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
         <button class="btn" id="copyEssayBtn"><span class="deco">📋 </span>복사하기</button>
         <button class="btn" id="exportEssayBtn"><span class="deco">⬇️ </span>텍스트로 내보내기</button>
         <button class="btn" id="printEssayBtn"><span class="deco">🖨️ </span>인쇄하기</button>
+        <button class="btn ws-print-btn" data-ws="all"><span class="deco">📄 </span>전체 워크시트 인쇄 (손글씨용)</button>
       </div>
     </div>
   </section>
@@ -690,6 +720,8 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
   </section>
 
 </div>
+
+<div id="wsPrintArea" aria-hidden="true"></div>
 
 <script>
 /* ============================================================
@@ -1574,6 +1606,95 @@ function renderHome() {
     b.addEventListener("click", () => showView(b.dataset.view));
   });
 }
+
+/* ============================================================
+   PRINTABLE WORKSHEETS (offline handwriting)
+============================================================ */
+function wsLines(n) { return Array.from({length:n}, () => '<div class="ws-line"></div>').join(""); }
+function wsHead(title) {
+  return `<div class="ws-head"><h2>✏️ 나의 글쓰기 노트 — ${title}</h2><span class="ws-nd">Name: ____________ &nbsp; Date: ____________</span></div>`;
+}
+function wsTopicBar(topicTitle) {
+  return `<div class="ws-topicbar">Topic: ${topicTitle ? escapeHtml(topicTitle) : "_______________________________"}</div>`;
+}
+function buildWorksheetHTML(part) {
+  const e = currentEssay();
+  const topic = e ? getTopic(e.topicId) : null;
+  const topicTitle = e ? (e.customTitle || (topic && topic.id !== "custom" ? topic.title : (e.intro.topic || ""))) : "";
+  const pages = [];
+
+  if (part === "mindmap" || part === "all") {
+    const oval = '<div class="ws-oval">아이디어를 적어보세요</div>';
+    pages.push(`<div class="ws-page">
+      ${wsHead("마인드맵 (Mind Map)")}
+      <p class="ws-note">가운데에 주제를 적고, 주변 동그라미에 떠오르는 아이디어를 자유롭게 적어보세요.</p>
+      <div class="ws-mm-grid">
+        ${oval}${oval}${oval}
+        ${oval}<div class="ws-oval center">What is the topic?<br>${topicTitle ? escapeHtml(topicTitle) : "______________"}</div>${oval}
+        ${oval}${oval}${oval}
+      </div>
+    </div>`);
+  }
+
+  if (part === "intro" || part === "all") {
+    const hookHint = topic && topic.hooks ? "예: " + escapeHtml(topic.hooks[0]) : "예: What is your favorite ...?";
+    const transHint = topic && topic.transitions ? "예: " + escapeHtml(topic.transitions[0]) : "예: My favorite ... is ...!";
+    const tsHint = topic && topic.topicSentences ? "예: " + escapeHtml(topic.topicSentences[0]) : "예: Let me tell you all about it.";
+    pages.push(`<div class="ws-page">
+      ${wsHead("서론 (Introduction)")}
+      ${wsTopicBar(topicTitle)}
+      <div class="ws-box"><div class="ws-label">1. Hook / Question — 질문으로 흥미 끌기</div><div class="ws-hint">${hookHint}</div>${wsLines(3)}</div>
+      <div class="ws-arrow">▼</div>
+      <div class="ws-box"><div class="ws-label">2. Transition (Answer the question) — 질문에 답하기</div><div class="ws-hint">${transHint}</div>${wsLines(3)}</div>
+      <div class="ws-arrow">▼</div>
+      <div class="ws-box"><div class="ws-label">3. Introduce Topic — Let me tell you... / I will explain...</div><div class="ws-hint">${tsHint}</div>${wsLines(3)}</div>
+    </div>`);
+  }
+
+  if (part === "body" || part === "all") {
+    const hints = (topic && topic.bodyHints) || ["첫 번째 중요한 내용","두 번째 중요한 내용","세 번째 중요한 내용"];
+    const cols = [0,1,2].map(i => `
+      <div>
+        <div class="ws-box"><div class="ws-label">Body ${i+1} — Main point</div><div class="ws-hint">${escapeHtml(hints[i % hints.length])}</div>${wsLines(3)}</div>
+        <div class="ws-arrow">▼</div>
+        <div class="ws-box"><div class="ws-label">Detail 1</div>${wsLines(4)}</div>
+        <div class="ws-arrow">▼</div>
+        <div class="ws-box"><div class="ws-label">Detail 2</div>${wsLines(4)}</div>
+      </div>`).join("");
+    pages.push(`<div class="ws-page">
+      ${wsHead("본론 (Body)")}
+      ${wsTopicBar(topicTitle)}
+      <div class="ws-grid3">${cols}</div>
+      <div class="ws-wordbank"><strong>Transition Words:</strong> ${TRANSITION_WORDS.join(" · ")}</div>
+    </div>`);
+  }
+
+  if (part === "conclusion" || part === "all") {
+    const qs = (topic && topic.conclusionQuestions) || [];
+    pages.push(`<div class="ws-page">
+      ${wsHead("결론 (Conclusion)")}
+      ${wsTopicBar(topicTitle)}
+      <div class="ws-box"><div class="ws-label">Closing — Retell your main idea (핵심 생각을 다른 말로 다시 쓰기)</div><div class="ws-hint">예: To sum up, ... will always be my favorite ... because ...</div>${wsLines(5)}</div>
+      ${qs.length ? `<div class="ws-note"><strong>💡 생각해볼 질문</strong><ul class="ws-qlist">${qs.map(q => `<li>${escapeHtml(q)}</li>`).join("")}</ul></div>` : ""}
+      <div class="ws-wordbank"><strong>마무리 전환어:</strong> Finally · Last · To conclude · To sum up · Overall</div>
+      <div class="ws-reminder"><strong>✅ 체크리스트</strong> — 문단 시작은 두 칸 들여쓰기 · 문단 사이 한 줄 띄우기 · 새 아이디어는 전환어로 시작 · 서론/결론 3~5문장, 본론 문단마다 3~5문장</div>
+    </div>`);
+  }
+
+  return pages.join("");
+}
+function printWorksheet(part) {
+  const area = document.getElementById("wsPrintArea");
+  area.innerHTML = buildWorksheetHTML(part);
+  document.body.classList.add("printing-ws");
+  const cleanup = () => { document.body.classList.remove("printing-ws"); window.removeEventListener("afterprint", cleanup); };
+  window.addEventListener("afterprint", cleanup);
+  window.print();
+  setTimeout(cleanup, 1000);
+}
+document.querySelectorAll(".ws-print-btn").forEach(b => {
+  b.addEventListener("click", () => printWorksheet(b.dataset.ws));
+});
 
 /* ============================================================
    MODE (kids / teen)
