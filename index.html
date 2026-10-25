@@ -446,6 +446,21 @@ body.mode-teen .map-stage { box-shadow:none; border-radius:var(--radius-md); }
   body.printing-ws #wsPrintArea { display:block; position:absolute; top:0; left:0; width:100%; }
   body.printing-ws #wsPrintArea, body.printing-ws #wsPrintArea * { visibility:visible; }
 }
+
+/* Sally Writing Studio */
+:root,body.mode-teen{--paper:#f5f4ee;--ink:#203d32;--line:#dce4dc;--content-width:1120px;--radius-lg:24px;--radius-md:16px;--radius-sm:12px;--font-size-base:16px}
+body.mode-kids{background:radial-gradient(ellipse at top right,#fff0c7,transparent 45%),#eff6ec;background-attachment:fixed}
+.wrap{padding:32px 24px 64px}header.app-header{padding:24px 0;margin-bottom:20px;border-bottom:1px solid var(--line)}
+.app-title h1{font-size:25px;letter-spacing:-1px}.app-title p{color:#68786e;line-height:1.7}.mascot-header{width:64px}body.mode-teen .mascot-header{width:48px}
+.btn{min-height:42px;border-color:#d5dfd5;box-shadow:none!important}.btn.primary,.mode-btn.active{background:#245b43;border-color:#245b43}.btn.primary:hover{background:#183f2f}.btn:focus-visible,button:focus-visible{outline:3px solid #cf9f45;outline-offset:3px}
+.steps{position:sticky;top:0;background:var(--paper);z-index:10;padding:10px 0;gap:4px}.step-btn{min-height:44px}.step-btn.active{color:#245b43;border-color:#245b43}.step-btn.active .num{background:#245b43}
+.card{padding:28px;border:1px solid var(--line);box-shadow:0 10px 30px #203d3205}.card h2{font-size:21px}.card .desc{font-size:14px;color:#68786e}.home-map{background:white}.map-path{gap:12px}.map-stage{border-radius:18px!important;box-shadow:none!important}.map-stage .m-desc{color:#647268!important;font-size:13px!important}
+body.mode-teen .map-stage{width:100%!important;margin:0!important}body.mode-teen .map-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}body.mode-teen .map-path:before{display:none}
+input[type=text],textarea,select{padding:13px 15px;font-size:16px;background:#fcfdfb;border-color:#ccd8ce}textarea{line-height:1.85;min-height:110px}input:focus,textarea:focus,select:focus{outline:3px solid #245b4318;border-color:#245b43}.hint-row .count{color:#66786b}
+.studio-hero{background:#245b43;color:white;padding:32px;border-radius:24px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center;gap:24px}.studio-hero h2{font-size:30px;margin:8px 0 12px;letter-spacing:-1px}.studio-hero p{color:#deeadf;line-height:1.8;margin:0 0 18px}.studio-eyebrow{font-size:11px;letter-spacing:3px;color:#d9dfb9}.studio-hero .btn{background:#f3d797;color:#203d32;border:0}.studio-status{font-size:12px;color:#536a5b;padding:8px 0;min-height:28px}.studio-tools{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.studio-check{padding:18px;background:#f1f5ed;border-radius:16px;line-height:1.8}.studio-check label{display:flex;align-items:center;gap:10px;font-size:14px;margin:8px 0}.studio-progress{height:7px;background:#ffffff30;border-radius:8px;margin:16px 0;overflow:hidden}.studio-progress span{display:block;height:100%;background:#f3d797}
+@media(max-width:700px){.wrap{padding:12px 14px 40px}.card{padding:20px 16px}header.app-header{padding:10px 0}.app-title h1{font-size:21px}.header-btns{gap:6px}.btn{padding:10px 12px}.studio-hero{padding:24px 20px}.studio-hero h2{font-size:25px}body.mode-teen .map-path{grid-template-columns:1fr}.body-columns{grid-template-columns:1fr}.mindmap-wrap{overflow:auto}.studio-tools>*{flex:1;min-width:130px}}
+@media print{.studio-hero,.studio-tools,.studio-status,.studio-check{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -846,7 +861,10 @@ function loadStore() {
     return raw ? JSON.parse(raw) : { essays:{}, currentId:null, typingHistory:[] };
   } catch(e) { return { essays:{}, currentId:null, typingHistory:[] }; }
 }
-function saveStore() { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
+function saveStore() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); const el=document.getElementById('saveStatus'); if(el) el.textContent='✓ 이 브라우저에 저장됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); }
+  catch(err) { const el=document.getElementById('saveStatus'); if(el) el.textContent='저장 공간이 부족해요. 글을 백업한 뒤 다시 시도하세요.'; }
+}
 function genId() { return "e_" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 function getTopic(topicId) {
@@ -1305,7 +1323,8 @@ function renderFinal() {
 ============================================================ */
 function renderLibrary() {
   const wrap = document.getElementById("essayListWrap");
-  const list = Object.values(store.essays).sort((a,b) => b.updatedAt - a.updatedAt);
+  const query=(document.getElementById('essaySearch')?.value||'').toLowerCase();
+  const list = Object.values(store.essays).filter(e=>JSON.stringify([e.title,e.customTitle,e.intro,e.body,e.conclusion]).toLowerCase().includes(query)).sort((a,b) => document.getElementById('essaySort')?.value==='title' ? (a.title||'').localeCompare(b.title||'') : b.updatedAt-a.updatedAt);
   if (list.length === 0) {
     wrap.innerHTML = `<p class="empty-note">아직 저장된 글이 없어요. "새 글 시작하기"로 첫 글을 써보세요!</p>`;
     return;
@@ -1729,6 +1748,18 @@ document.querySelectorAll(".mode-overlay-option").forEach(b => b.addEventListene
   setMode(b.dataset.mode);
   document.getElementById("modeOverlay").style.display = "none";
 }));
+
+
+const home=document.getElementById('view-home');
+const hero=document.createElement('div');hero.className='studio-hero';hero.id='studioHero';home.prepend(hero);
+const status=document.createElement('div');status.id='saveStatus';status.className='studio-status';status.setAttribute('role','status');status.textContent='글은 현재 기기와 브라우저에 자동 저장됩니다.';document.querySelector('.steps').before(status);
+const libraryTools=document.createElement('div');libraryTools.className='studio-tools';libraryTools.innerHTML='<input id="essaySearch" type="search" aria-label="내 글 검색" placeholder="제목이나 글 내용으로 검색"><select id="essaySort" aria-label="글 정렬"><option value="recent">최근 수정순</option><option value="title">제목순</option></select><button class="btn" id="backupAll">전체 글 백업</button>';document.getElementById('essayListWrap').before(libraryTools);
+document.getElementById('essaySearch').addEventListener('input',renderLibrary);document.getElementById('essaySort').addEventListener('change',renderLibrary);
+document.getElementById('backupAll').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(store,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sally-writing-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+const finalCheck=document.createElement('div');finalCheck.className='studio-check';finalCheck.innerHTML='<strong>완성 전, 한 번 더 읽어볼까요?</strong>'+['첫 문장은 대문자로 시작했나요?','문장 끝에 마침표나 물음표를 썼나요?','각 문단의 핵심 생각과 구체적인 예시가 연결되나요?','결론에서 내 생각을 정리했나요?'].map(t=>'<label><input type="checkbox">'+t+'</label>').join('');document.getElementById('view-final').append(finalCheck);
+const originalRenderHome=renderHome;
+renderHome=function(){originalRenderHome();const teen=currentUiMode()==='teen';const e=currentEssay()||Object.values(store.essays).sort((a,b)=>b.updatedAt-a.updatedAt)[0];const done=essayStageDone(e);const n=['topics','mindmap','intro','body','conclusion'].filter(k=>done[k]).length;hero.innerHTML='<div><div class="studio-eyebrow">SALLY’S ENGLISH · WRITING STUDIO</div><h2>'+(teen?'생각을 펼치고, 나만의 글로.':'작은 생각이 멋진 이야기가 돼요!')+'</h2><p>'+(e?escapeHtml(e.title||'작성 중인 글')+' · '+n+'/5 단계 달성':'주제를 고르고 생각을 모아 첫 문장부터 함께 써봐요.')+'</p>'+(e?'<div class="studio-progress"><span style="width:'+n*20+'%"></span></div>':'')+'<button class="btn" id="continueWriting">'+(e?'이어서 쓰기 →':'첫 글 시작하기 →')+'</button></div>';document.getElementById('continueWriting').onclick=()=>{if(e){store.currentId=e.id;saveStore();showView(['topics','mindmap','intro','body','conclusion'].find(k=>!done[k])||'final');}else showView('topics');};if(teen){document.querySelector('#view-home h2:not(.studio-hero h2)')?.replaceChildren(document.createTextNode('글쓰기 워크플로'));document.getElementById('homeBubble').textContent='주장에 근거를 더하고, 문단을 연결하며 글을 완성하세요.';document.querySelectorAll('#mapPath .m-name').forEach((el,i)=>el.textContent=['주제와 예시','아이디어 정리','서론 · Introduction','본론 · Body','결론 · Conclusion','최종 원고'][i]);}};
+const originalApplyMode=applyMode;applyMode=function(mode){originalApplyMode(mode);if(currentView==='home')renderHome();};
 
 /* ============================================================
    INIT
